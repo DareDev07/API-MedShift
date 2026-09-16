@@ -44,6 +44,9 @@ inicio
         senao
             se (opcaoTurno = "3") entao
                 opcaoTurno <- "Noite"
+
+            senao 
+                escreva("ERRO: Opção inválida.")
             fimse
         fimse
     fimse
