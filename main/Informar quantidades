@@ -1,0 +1,181 @@
+algoritmo "Hospital Aurora"
+
+var
+
+opcaoMenu : caractere
+opcaoTurno : caractere
+
+qtdClinicos : inteiro
+qtdPediatras : inteiro
+qtdCirurgioes : inteiro
+
+limiteMax : inteiro
+minClinicos : inteiro
+minPediatras : inteiro
+minCirurgioes : inteiro
+
+publicar : logico
+
+inicio
+    // Menu inicial, usuário escolhe um número de acordo com a ação desejada.
+    escreval("--> Hospital Aurora <--")
+    escreval("1 - Entrar")
+    escreval("2 - Sair")
+    escreva("Escolha uma opção: ")
+    leia(opcaoMenu)
+    limpatela
+
+    // Validação da escolha. Se 1: Escolher turno. Se 2: Sair. OUTRO: Inválido.
+    se (opcaoMenu = "1") entao
+        escreval("--> Escolher turno")
+    senao
+        se (opcaoMenu = "2") entao
+            escreva("Você saiu.")
+            interrompa
+        senao
+            escreva("ERRO: Opção inválida.")
+            interrompa
+        fimse
+    fimse
+
+    // Menu de turno, usuário escolhe um número de acordo com o turno desejado.
+escreval("1 - Manhã")
+escreval("2 - Tarde")
+escreval("3 - Noite")
+escreva("Escolha uma opção: ")
+leia(opcaoTurno)
+limpatela
+
+// Validação da escolha. Se 1: Manhã. Se 2: Tarde. Se 3: Noite.
+se (opcaoTurno = "1") entao
+    opcaoTurno <- "Manhã"
+senao
+    se (opcaoTurno = "2") entao
+        opcaoTurno <- "Tarde"
+    senao
+        se (opcaoTurno = "3") entao
+            opcaoTurno <- "Noite"
+        senao
+            escreval("ERRO: Opção inválida.")
+            escreval("Tente novamente.")
+        fimse
+    fimse
+fimse
+
+
+    // ==========================================
+    // ANÁLISE DO PLANTÃO
+    // ==========================================
+
+    limiteMax <- 20
+    minClinicos <- 3
+    minPediatras <- 2
+    minCirurgioes <- 2
+
+    escreval("=== PLANTAO - HOSPITAL AURORA ===")
+    escreval("Turno selecionado: ", opcaoTurno)
+    escreval("")
+
+
+    // ==========================================
+    // QUANTIDADE DE CLÍNICOS GERAIS
+    // ==========================================
+
+    escreva("Quantidade de Clinicos Gerais: ")
+    leia(qtdClinicos)
+
+    para qtdClinicos de qtdClinicos ate qtdClinicos faca
+
+        se (qtdClinicos < 0) entao
+            escreval("ERRO: a quantidade nao pode ser negativa.")
+        fimse
+
+        se (qtdClinicos > limiteMax) entao
+            escreval("ERRO: o limite maximo e ", limiteMax, ".")
+        fimse
+
+    fimpara
+
+
+    // ==========================================
+    // QUANTIDADE DE PEDIATRAS
+    // ==========================================
+
+    escreva("Quantidade de Pediatras: ")
+    leia(qtdPediatras)
+
+    para qtdPediatras de qtdPediatras ate qtdPediatras faca
+
+        se (qtdPediatras < 0) entao
+            escreval("ERRO: a quantidade nao pode ser negativa.")
+        fimse
+
+        se (qtdPediatras > limiteMax) entao
+            escreval("ERRO: o limite maximo e ", limiteMax, ".")
+        fimse
+
+    fimpara
+
+
+    // ==========================================
+    // QUANTIDADE DE CIRURGIÕES
+    // ==========================================
+
+    escreva("Quantidade de Cirurgioes: ")
+    leia(qtdCirurgioes)
+
+    para qtdCirurgioes de qtdCirurgioes ate qtdCirurgioes faca
+
+        se (qtdCirurgioes < 0) entao
+            escreval("ERRO: a quantidade nao pode ser negativa.")
+        fimse
+
+        se (qtdCirurgioes > limiteMax) entao
+            escreval("ERRO: o limite maximo e ", limiteMax, ".")
+        fimse
+
+    fimpara
+
+
+    // ==========================================
+    // VERIFICAÇÃO DA COBERTURA
+    // ==========================================
+
+    publicar <- verdadeiro
+
+    escreval("")
+
+    se (qtdClinicos < minClinicos) entao
+        publicar <- falso
+        escreval("Falta cobertura: Clinicos Gerais (", qtdClinicos,
+                 " de no minimo ", minClinicos, ")")
+    fimse
+
+    se (qtdPediatras < minPediatras) entao
+        publicar <- falso
+        escreval("Falta cobertura: Pediatras (", qtdPediatras,
+                 " de no minimo ", minPediatras, ")")
+    fimse
+
+    se (qtdCirurgioes < minCirurgioes) entao
+        publicar <- falso
+        escreval("Falta cobertura: Cirurgioes (", qtdCirurgioes,
+                 " de no minimo ", minCirurgioes, ")")
+    fimse
+
+
+    // ==========================================
+    // RESULTADO FINAL
+    // ==========================================
+
+    escreval("")
+
+    se (publicar = verdadeiro) entao
+        escreval("RESULTADO: plantao de ", opcaoTurno,
+                 " pode ser PUBLICADO.")
+    senao
+        escreval("RESULTADO: plantao de ", opcaoTurno,
+                 " NAO pode ser publicado.")
+    fimse
+
+fimalgoritmo
