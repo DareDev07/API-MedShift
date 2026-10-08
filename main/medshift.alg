@@ -2,96 +2,127 @@ algoritmo "Hospital Aurora"
 
 var
 
-opcaoMenu : caractere
 opcaoTurno : caractere
-opcaoQtd : real
+
+continuar : logico
 
 qtdClinicos : inteiro
 qtdPediatras : inteiro
 qtdCirurgioes : inteiro
 
+limiteMax : inteiro
+minClinicos : inteiro
+minPediatras : inteiro
+minCirurgioes : inteiro
+
+totalEspec : inteiro
+
 inicio
-    // Menu inicial, usuário escolhe um número de acordo com a ação desejada.
-    escreval("=== HOSPITAL AURORA ===")
-    escreval("1 - Entrar")
-    escreval("2 - Sair")
-    escreva("Escolha uma opção: ")
-    leia(opcaoMenu)
-    limpatela
 
-    // Validação da escolha. Se 1: Escolher turno. Se 2: Sair. OUTRO: Inválido.
-    se (opcaoMenu = "1") entao
+    continuar <- falso
+
+    enquanto continuar = falso faca
+        escreval("=== HOSPITAL AURORA ===")
         escreval("=== ESCOLHER TURNO ===")
-    senao
-        se (opcaoMenu = "2") entao
-            escreva("Você saiu.")
-            interrompa
-        senao
-            escreva("ERRO: Opção inválida.")
-            interrompa
-        fimse
-    fimse
 
-    // Menu de turno, usuário escolhe um número de acordo com o turno desejado.
-    escreval("1 - Manhã")
-    escreval("2 - Tarde")
-    escreval("3 - Noite")
-    escreva("Escolha uma opção: ")
-    leia(opcaoTurno)
-    limpatela
+        // Menu de turno, usuário escolhe um número de acordo com o turno desejado.
+        escreval("1 - Manhã")
+        escreval("2 - Tarde")
+        escreval("3 - Noite")
+        escreva("Escolha uma opção: ")
+        leia(opcaoTurno)
 
-    // Validação da escolha. Se 1: Manhã. Se 2: Tarde. Se 3: Noite. OUTRO: Inválido.
-    se (opcaoTurno = "1") entao
-        opcaoTurno <- "Manhã"
-    senao
-        se (opcaoTurno = "2") entao
-            opcaoTurno <- "Tarde"
+        // Validação da escolha. Se 1: Manhã. Se 2: Tarde. Se 3: Noite. OUTRO: Inválido.
+        se (opcaoTurno = "1") entao
+            opcaoTurno <- "Manhã"
+            continuar <- verdadeiro
         senao
-            se (opcaoTurno = "3") entao
-                opcaoTurno <- "Noite"
+            se (opcaoTurno = "2") entao
+                opcaoTurno <- "Tarde"
+                continuar <- verdadeiro
             senao
-                escreval("ERRO: Opção inválida.")
-                interrompa
+                se (opcaoTurno = "3") entao
+                    opcaoTurno <- "Noite"
+                    continuar <- verdadeiro
+                senao
+                    limpatela
+                    escreval("ERRO: Opção inválida.")
+                    escreval("")
+                    continuar <- falso
+                fimse
             fimse
         fimse
-    fimse
+    fimenquanto
+
+    limpatela
+    continuar <- falso
 
     // Análise do plantão
-    escreval("=== PLANTAO ===")
-    escreval("Turno selecionado: ", opcaoTurno)
-    escreval("")
+    enquanto continuar = falso faca
+        escreval("=== PLANTAO ===")
+        escreval("Turno selecionado: ", opcaoTurno)
+        escreval("")
 
-    // Quantidade de Clínicos Gerais
-    escreva("Quantidade de Clínicos Gerais: ")
-    leia(opcaoQtd)
+        // Quantidade de Clínicos Gerais
+        escreva("Quantidade de Clínicos Gerais: ")
+        leia(qtdClinicos)
 
-    se (opcaoQtd = int(opcaoQtd)) entao
-        qtdClinicos <- int(opcaoQtd)
-    senao
-        escreval("ERRO: a quantidade deve ser um número inteiro.")
-        interrompa
-    fimse
+        // Quantidade de Pediatras
+        escreva("Quantidade de Pediatras: ")
+        leia(qtdPediatras)
 
-    // Quantidade de Pediatras
-    escreva("Quantidade de Pediatras: ")
-    leia(opcaoQtd)
+        // Quantidade de Cirurgiões
+        escreva("Quantidade de Cirurgiões: ")
+        leia(qtdCirurgioes)
 
-    se (opcaoQtd = int(opcaoQtd)) entao
-        qtdPediatras <- int(opcaoQtd)
-    senao
-        escreval("ERRO: a quantidade deve ser um número inteiro.")
-        interrompa
-    fimse
+        limiteMax <- 20
+        minClinicos <- 4
+        minPediatras <- 2
+        minCirurgioes <- 3
 
-    // Quantidade de Cirurgiões
-    escreva("Quantidade de Cirurgiões: ")
-    leia(opcaoQtd)
+        totalEspec <- qtdClinicos + qtdPediatras + qtdCirurgioes
 
-    se (opcaoQtd = int(opcaoQtd)) entao
-        qtdCirurgioes <- int(opcaoQtd)
-    senao
-        escreval("ERRO: a quantidade deve ser um número inteiro.")
-        interrompa
-    fimse
+        se (qtdClinicos > 0) e (qtdPediatras > 0) e (qtdCirurgioes > 0) entao
+
+            // Verificação da cobertura
+            se (qtdClinicos >= minClinicos) entao
+                se (qtdPediatras >= minPediatras) entao
+                    se (qtdCirurgioes >= minCirurgioes) entao
+                        se (totalEspec <= limiteMax) entao
+                            escreval("")
+                            escreval("SUCESSO: Plantão pronto para ser publicado!")
+                            continuar <- verdadeiro
+                        senao
+                            limpatela
+                            escreval("ERRO: O Plantão excede o limite máximo de médicos (20).")
+                            escreval("")
+                            continuar <- falso
+                        fimse
+                    senao
+                        limpatela
+                        escreval("ERRO: O plantão não cobre o mínimo de CIRURGIÕES (3).")
+                        escreval("")
+                        continuar <- falso
+                    fimse
+                senao
+                    limpatela
+                    escreval("ERRO: O plantão não cobre o mínimo de PEDIATRAS (2).")
+                    escreval("")
+                    continuar <- falso
+                fimse
+            senao
+                limpatela
+                escreval("ERRO: O plantão não cobre o mínimo de CLÍNICOS (4).")
+                escreval("")
+                continuar <- falso
+            fimse
+        senao
+            limpatela
+            escreval("ERRO: a quantidade deve ser um número inteiro maior que zero.")
+            escreval("")
+            continuar <- falso
+        fimse
+
+    fimenquanto
 
 fimalgoritmo
