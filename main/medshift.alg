@@ -67,8 +67,6 @@ inicio
                escreva("Nome: ")
                leia(nomeInserido)
 
-               // Verificar se o nome existe antes de colocar na lista medicoNome
-               // pois não pode repetir
                escreval("")
                escreval("Disponibilidade: ")
                escreval("1 - Manhã")
