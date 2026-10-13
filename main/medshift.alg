@@ -28,6 +28,11 @@ var
 
    totalEspec : inteiro
 
+   i : inteiro
+   duplicado : logico
+   turnoInserido : caractere
+   nomeInserido : caractere
+
 inicio
    // inicialização de variáveis com valores definidos
    cadMedicos <- falso
@@ -57,12 +62,10 @@ inicio
             // se o limite de médicos não foi atingido, faz:
             se posicao < 20 entao
 
-               posicao <- posicao + 1
-
                escreval("=== CADASTRAR MÉDICO ===")
 
                escreva("Nome: ")
-               leia(medicoNome[posicao])
+               leia(nomeInserido)
 
                // especialidade é registrada como "número" em sua posição atual do vetor
                escreval("")
@@ -80,7 +83,7 @@ inicio
                escreval("2 - Tarde")
                escreval("3 - Noite")
                escreva("Escolha uma opção: ")
-               leia(medicoDisp[posicao])
+               leia(opcaoTurno)
 
                // especialidade é convertida de "número" para texto
                // o ID é gerado automaticamente
@@ -102,15 +105,47 @@ inicio
                fimse
 
                // disponibilidade é convertida de "número" para texto
-               se medicoDisp[posicao] = "1" entao
-                  medicoDisp[posicao] <- "Manhã"
+               se opcaoTurno = "1" entao
+                  turnoInserido <- "Manhã"
                senao
-                  se medicoDisp[posicao] = "2" entao
-                     medicoDisp[posicao] <- "Tarde"
+                  se opcaoTurno = "2" entao
+                     turnoInserido <- "Tarde"
                   senao
-                     se medicoDisp[posicao] = "3" entao
-                        medicoDisp[posicao] <- "Noite"
+                     se opcaoTurno = "3" entao
+                        turnoInserido <- "Noite"
+                     senao
+                        turnoInserido <- ""
                      fimse
+                  fimse
+               fimse
+
+               se turnoInserido = "" entao
+                  escreval("")
+                  escreval("ERRO: Opção inválida.")
+               senao
+                  // Verificar duplicidade
+                  duplicado <- falso
+
+                  para i de 1 ate posicao faca
+                     se medicoNome[i] = nomeInserido entao
+                        se medicoDisp[i] = turnoInserido entao
+                           duplicado <- verdadeiro
+                        fimse
+                     fimse
+                  fimpara
+
+                  se duplicado = verdadeiro entao
+
+                     escreval("")
+                     escreval("ERRO: Este médico já está cadastrado neste turno.")
+                     escreval("O cadastro não será repetido.")
+
+                  senao
+
+                     // Cadastrar somente se não houver duplicidade
+                     posicao <- posicao + 1
+                     medicoNome[posicao] <- nomeInserido
+                     medicoDisp[posicao] <- turnoInserido
                   fimse
                fimse
 
