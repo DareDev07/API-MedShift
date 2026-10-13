@@ -1,3 +1,4 @@
+
 algoritmo "Hospital Aurora"
 
 var
@@ -16,6 +17,7 @@ var
    continuarPlan : logico
 
    opcaoTurno : caractere
+   nomeInserido : caractere
 
    qtdClinicos : inteiro
    qtdPediatras : inteiro
@@ -28,25 +30,29 @@ var
 
    totalEspec : inteiro
 
+   i : inteiro
+   duplicado : logico
+   turnoInserido : caractere
+
 inicio
-   // inicializa√ß√£o de vari√°veis com valores definidos
+   // inicializaÁ„o de vari·veis com valores definidos
    cadMedicos <- falso
    cadPlantao <- falso
    continuarPlan <- falso
    posicao <- 0
    opcaoMenu <- 0
 
-   // menu inicial, onde o usu√°rio escolhe o que fazer
+   // menu inicial, onde o usu·rio escolhe o que fazer
    enquanto opcaoMenu <> 3 faca
 
       escreval("=== MedShift - Hospital Aurora ===")
-      escreval("1 - Cadastrar m√©dicos")
-      escreval("2 - Criar plant√£o")
+      escreval("1 - Cadastrar medicos")
+      escreval("2 - Criar plant„o")
       escreval("3 - Encerrar")
-      escreva("Escolha uma op√ß√£o: ")
+      escreva("Escolha uma opÁ„o: ")
       leia(opcaoMenu)
 
-      // op√ß√£o 1 do menu: cadastrar m√©dicos
+      // opÁ„o 1 do menu: cadastrar mÈdicos
       se opcaoMenu = 1 entao
 
          limpatela
@@ -54,73 +60,109 @@ inicio
 
          enquanto cadMedicos = verdadeiro faca
 
-            // se o limite de m√©dicos n√£o foi atingido, faz:
+            // se o limite de mÈdicos n„o foi atingido, faz:
             se posicao < 20 entao
 
-               posicao <- posicao + 1
-
-               escreval("=== CADASTRAR M√âDICO ===")
+               escreval("=== CADASTRAR M…DICO ===")
 
                escreva("Nome: ")
-               leia(medicoNome[posicao])
+               leia(nomeInserido)
 
-               // especialidade √© registrada como "n√∫mero" em sua posi√ß√£o atual do vetor
-               escreval("")
-               escreval("Especialidade: ")
-               escreval("1 - Cl√≠nico geral")
-               escreval("2 - Pediatra")
-               escreval("3 - Cirurgi√£o")
-               escreva("Escolha uma op√ß√£o: ")
-               leia(medicoEspec[posicao])
-
-               // disponibilidade √© registrada como "n√∫mero" em sua posi√ß√£o atual do vetor
+               // Verificar se o nome existe antes de colocar na lista medicoNome
+               // pois n„o pode repetir
                escreval("")
                escreval("Disponibilidade: ")
-               escreval("1 - Manh√£")
+               escreval("1 - Manh„")
                escreval("2 - Tarde")
                escreval("3 - Noite")
-               escreva("Escolha uma op√ß√£o: ")
-               leia(medicoDisp[posicao])
+               escreva("Escolha uma opÁ„o: ")
+               leia(opcaoTurno)
 
-               // especialidade √© convertida de "n√∫mero" para texto
-               // o ID √© gerado automaticamente
-               se medicoEspec[posicao] = "1" entao
-                  medicoEspec[posicao] <- "Cl√≠nico geral"
-                  medicoID[posicao] <- 100 + posicao
+               se opcaoTurno = "1" entao
+                  turnoInserido <- "Manh„"
                senao
-                  se medicoEspec[posicao] = "2" entao
-                     medicoEspec[posicao] <- "Pediatra"
-                     medicoID[posicao] <- 200 + posicao
+                  se opcaoTurno = "2" entao
+                     turnoInserido <- "Tarde"
                   senao
-                     se medicoEspec[posicao] = "3" entao
-                        medicoEspec[posicao] <- "Cirurgi√£o"
-                        medicoID[posicao] <- 300 + posicao
+                     se opcaoTurno = "3" entao
+                        turnoInserido <- "Noite"
                      senao
-                        medicoID[posicao] <- posicao
+                        turnoInserido <- ""
                      fimse
                   fimse
                fimse
 
-               // disponibilidade √© convertida de "n√∫mero" para texto
-               se medicoDisp[posicao] = "1" entao
-                  medicoDisp[posicao] <- "Manh√£"
+               se turnoInserido = "" entao
+
+                  escreval("")
+                  escreval("ERRO: OpÁ„o inv·lida.")
+
                senao
-                  se medicoDisp[posicao] = "2" entao
-                     medicoDisp[posicao] <- "Tarde"
-                  senao
-                     se medicoDisp[posicao] = "3" entao
-                        medicoDisp[posicao] <- "Noite"
+
+                  // Verificar duplicidade
+                  duplicado <- falso
+
+                  para i de 1 ate posicao faca
+                     se medicoNome[i] = nomeInserido entao
+                        se medicoDisp[i] = turnoInserido entao
+                           duplicado <- verdadeiro
+                        fimse
                      fimse
+                  fimpara
+
+                  se duplicado = verdadeiro entao
+
+                     escreval("")
+                     escreval("ERRO: Este mÈdico j· est· cadastrado neste turno.")
+                     escreval("O cadastro n„o ser· repetido.")
+
+                  senao
+
+                     // Cadastrar somente se n„o houver duplicidade
+                     posicao <- posicao + 1
+                     medicoNome[posicao] <- nomeInserido
+                     medicoDisp[posicao] <- turnoInserido
+
+                     // especialidade È registrada como "n˙mero" em sua posiÁ„o atual do vetor
+                     escreval("")
+                     escreval("Especialidade: ")
+                     escreval("1 - ClÌnico geral")
+                     escreval("2 - Pediatra")
+                     escreval("3 - Cirurgi„o")
+                     escreva("Escolha uma opÁ„o: ")
+                     leia(medicoEspec[posicao])
+
+                     // especialidade È convertida de "n˙mero" para texto
+                     // o ID È gerado automaticamente
+                     se medicoEspec[posicao] = "1" entao
+                        medicoEspec[posicao] <- "ClÌnico geral"
+                        medicoID[posicao] <- 100 + posicao
+                     senao
+                        se medicoEspec[posicao] = "2" entao
+                           medicoEspec[posicao] <- "Pediatra"
+                           medicoID[posicao] <- 200 + posicao
+                        senao
+                           se medicoEspec[posicao] = "3" entao
+                              medicoEspec[posicao] <- "Cirurgi„o"
+                              medicoID[posicao] <- 300 + posicao
+                           senao
+                              medicoID[posicao] <- posicao
+                           fimse
+                        fimse
+                     fimse
+
+                     escreval("")
+                     escreval("ID gerado: ", medicoID[posicao])
+
                   fimse
+
                fimse
 
-               escreval("")
-               escreval("ID gerado: ", medicoID[posicao])
                escreval("")
                escreval("Continuar cadastrando?")
                escreval("1 - Continuar")
                escreval("2 - Sair")
-               escreva("Escolha uma op√ß√£o: ")
+               escreva("Escolha uma opÁ„o: ")
                leia(opcaoCad)
 
                se opcaoCad = 2 entao
@@ -131,7 +173,7 @@ inicio
                      limpatela
                   senao
                      escreval("")
-                     escreval("ERRO: Op√ß√£o inv√°lida. Cadastro encerrado.")
+                     escreval("ERRO: OpÁ„o inv·lida. Cadastro encerrado.")
                      escreval("Pressione Enter para voltar ao menu.")
                      leia(opcaoCad)
                      cadMedicos <- falso
@@ -139,7 +181,7 @@ inicio
                fimse
 
             senao
-               escreval("Limite de 20 m√©dicos atingido.")
+               escreval("Limite de 20 mÈdicos atingido.")
                escreval("")
                escreval("Pressione Enter para voltar ao menu.")
                leia(opcaoCad)
@@ -151,7 +193,7 @@ inicio
          limpatela
 
       senao
-         // op√ß√£o 2 do menu: criar plant√£o
+         // opÁ„o 2 do menu: criar plant„o
          se opcaoMenu = 2 entao
 
             limpatela
@@ -163,17 +205,17 @@ inicio
 
                enquanto continuarPlan = falso faca
 
-                  // turno √© registrado como "n√∫mero" na vari√°vel
+                  // turno È registrado como "n˙mero" na vari·vel
                   escreval("=== ESCOLHER TURNO ===")
-                  escreval("1 - Manh√£")
+                  escreval("1 - Manh„")
                   escreval("2 - Tarde")
                   escreval("3 - Noite")
-                  escreva("Escolha uma op√ß√£o: ")
+                  escreva("Escolha uma opÁ„o: ")
                   leia(opcaoTurno)
 
-                  // turno √© convertido de "n√∫mero" para texto
+                  // turno È convertido de "n˙mero" para texto
                   se opcaoTurno = "1" entao
-                     opcaoTurno <- "Manh√£"
+                     opcaoTurno <- "Manh„"
                      continuarPlan <- verdadeiro
                   senao
                      se opcaoTurno = "2" entao
@@ -185,7 +227,7 @@ inicio
                            continuarPlan <- verdadeiro
                         senao
                            limpatela
-                           escreval("ERRO: Op√ß√£o inv√°lida.")
+                           escreval("ERRO: OpÁ„o inv·lida.")
                            escreval("")
                         fimse
                      fimse
@@ -198,20 +240,20 @@ inicio
 
                enquanto continuarPlan = falso faca
 
-                  escreval("=== PLANT√ÉO ===")
+                  escreval("=== PLANT√O ===")
                   escreval("Turno selecionado: ", opcaoTurno)
                   escreval("")
 
-                  escreva("Quantidade de Cl√≠nicos Gerais: ")
+                  escreva("Quantidade de ClÌnicos Gerais: ")
                   leia(qtdClinicos)
 
                   escreva("Quantidade de Pediatras: ")
                   leia(qtdPediatras)
 
-                  escreva("Quantidade de Cirurgi√µes: ")
+                  escreva("Quantidade de Cirurgiıes: ")
                   leia(qtdCirurgioes)
 
-                  // defini√ß√£o de limites para a quantidade dos m√©dicos
+                  // definiÁ„o de limites para a quantidade dos mÈdicos
                   limiteMax <- 20
                   minClinicos <- 4
                   minPediatras <- 2
@@ -219,7 +261,7 @@ inicio
 
                   totalEspec <- qtdClinicos + qtdPediatras + qtdCirurgioes
 
-                  // valida√ß√£o do m√≠nimo de m√©dicos selecionados
+                  // validaÁ„o do mÌnimo de mÈdicos selecionados
                   se (qtdClinicos > 0) e (qtdPediatras > 0) e (qtdCirurgioes > 0) entao
 
                      se qtdClinicos >= minClinicos entao
@@ -228,31 +270,31 @@ inicio
 
                            se qtdCirurgioes >= minCirurgioes entao
 
-                              // valida√ß√£o do limite de 20 m√©dicos num plant√£o
+                              // validaÁ„o do limite de 20 mÈdicos num plant„o
                               se totalEspec <= limiteMax entao
                                  escreval("")
-                                 escreval("SUCESSO: Plant√£o pronto para ser publicado!")
+                                 escreval("SUCESSO: Plant„o pronto para ser publicado!")
                                  escreval("Pressione Enter para voltar ao menu.")
                                  leia(opcaoCad)
                                  continuarPlan <- verdadeiro
                               senao
                                  limpatela
-                                 escreval("ERRO: O plant√£o excede o limite m√°ximo de 20 m√©dicos.")
+                                 escreval("ERRO: O plant„o excede o limite m·ximo de 20 mÈdicos.")
                               fimse
 
                            senao
                               limpatela
-                              escreval("ERRO: O plant√£o exige no m√≠nimo 3 cirurgi√µes.")
+                              escreval("ERRO: O plant„o exige no mÌnimo 3 cirurgiıes.")
                            fimse
 
                         senao
                            limpatela
-                           escreval("ERRO: O plant√£o exige no m√≠nimo 2 pediatras.")
+                           escreval("ERRO: O plant„o exige no mÌnimo 2 pediatras.")
                         fimse
 
                      senao
                         limpatela
-                        escreval("ERRO: O plant√£o exige no m√≠nimo 4 cl√≠nicos.")
+                        escreval("ERRO: O plant„o exige no mÌnimo 4 clÌnicos.")
                      fimse
 
                   senao
@@ -276,7 +318,7 @@ inicio
          senao
             se opcaoMenu <> 3 entao
                limpatela
-               escreval("ERRO: Op√ß√£o inv√°lida.")
+               escreval("ERRO: OpÁ„o inv·lida.")
                escreval("")
             fimse
          fimse
@@ -284,7 +326,7 @@ inicio
 
    fimenquanto
 
-   // op√ß√£o 3 do menu: encerrar programa
+   // opÁ„o 3 do menu: encerrar programa
    escreval("")
    escreval("Sistema encerrado.")
 
