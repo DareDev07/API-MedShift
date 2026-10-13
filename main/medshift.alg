@@ -5,6 +5,7 @@ var
 
    cadMedicos : logico
    opcaoCad : inteiro
+   opcaoEspecialidade : inteiro
 
    posicao : inteiro
    medicoNome : vetor[1..20] de caractere
@@ -67,16 +68,6 @@ inicio
                escreva("Nome: ")
                leia(nomeInserido)
 
-               // especialidade é registrada como "número" em sua posição atual do vetor
-               escreval("")
-               escreval("Especialidade: ")
-               escreval("1 - Clínico geral")
-               escreval("2 - Pediatra")
-               escreval("3 - Cirurgião")
-               escreva("Escolha uma opção: ")
-               leia(medicoEspec[posicao])
-
-               // disponibilidade é registrada como "número" em sua posição atual do vetor
                escreval("")
                escreval("Disponibilidade: ")
                escreval("1 - Manhã")
@@ -85,26 +76,6 @@ inicio
                escreva("Escolha uma opção: ")
                leia(opcaoTurno)
 
-               // especialidade é convertida de "número" para texto
-               // o ID é gerado automaticamente
-               se medicoEspec[posicao] = "1" entao
-                  medicoEspec[posicao] <- "Clínico geral"
-                  medicoID[posicao] <- 100 + posicao
-               senao
-                  se medicoEspec[posicao] = "2" entao
-                     medicoEspec[posicao] <- "Pediatra"
-                     medicoID[posicao] <- 200 + posicao
-                  senao
-                     se medicoEspec[posicao] = "3" entao
-                        medicoEspec[posicao] <- "Cirurgião"
-                        medicoID[posicao] <- 300 + posicao
-                     senao
-                        medicoID[posicao] <- posicao
-                     fimse
-                  fimse
-               fimse
-
-               // disponibilidade é convertida de "número" para texto
                se opcaoTurno = "1" entao
                   turnoInserido <- "Manhã"
                senao
@@ -126,13 +97,15 @@ inicio
                   // Verificar duplicidade
                   duplicado <- falso
 
-                  para i de 1 ate posicao faca
-                     se medicoNome[i] = nomeInserido entao
-                        se medicoDisp[i] = turnoInserido entao
-                           duplicado <- verdadeiro
+                  se posicao > 0 entao
+                     para i de 1 ate posicao faca
+                        se medicoNome[i] = nomeInserido entao
+                           se medicoDisp[i] = turnoInserido entao
+                              duplicado <- verdadeiro
+                           fimse
                         fimse
-                     fimse
-                  fimpara
+                     fimpara
+                  fimse
 
                   se duplicado = verdadeiro entao
 
@@ -146,11 +119,42 @@ inicio
                      posicao <- posicao + 1
                      medicoNome[posicao] <- nomeInserido
                      medicoDisp[posicao] <- turnoInserido
+
+                     // especialidade é registrada como número
+                     escreval("")
+                     escreval("Especialidade: ")
+                     escreval("1 - Clínico geral")
+                     escreval("2 - Pediatra")
+                     escreval("3 - Cirurgião")
+                     escreva("Escolha uma opção: ")
+                     leia(opcaoEspecialidade)
+
+                     // especialidade é convertida de número para texto
+                     // o ID é gerado automaticamente
+                     se opcaoEspecialidade = 1 entao
+                        medicoEspec[posicao] <- "Clínico geral"
+                        medicoID[posicao] <- 100 + posicao
+                     senao
+                        se opcaoEspecialidade = 2 entao
+                           medicoEspec[posicao] <- "Pediatra"
+                           medicoID[posicao] <- 200 + posicao
+                        senao
+                           se opcaoEspecialidade = 3 entao
+                              medicoEspec[posicao] <- "Cirurgião"
+                              medicoID[posicao] <- 300 + posicao
+                           senao
+                              medicoEspec[posicao] <- "Inválida"
+                              medicoID[posicao] <- posicao
+                           fimse
+                        fimse
+                     fimse
+
+                     escreval("")
+                     escreval("ID gerado: ", medicoID[posicao])
+
                   fimse
                fimse
 
-               escreval("")
-               escreval("ID gerado: ", medicoID[posicao])
                escreval("")
                escreval("Continuar cadastrando?")
                escreval("1 - Continuar")
@@ -255,44 +259,36 @@ inicio
                   totalEspec <- qtdClinicos + qtdPediatras + qtdCirurgioes
 
                   // validação do mínimo de médicos selecionados
-                  se (qtdClinicos > 0) e (qtdPediatras > 0) e (qtdCirurgioes > 0) entao
+                  se qtdClinicos >= minClinicos entao
 
-                     se qtdClinicos >= minClinicos entao
+                     se qtdPediatras >= minPediatras entao
+                        se qtdCirurgioes >= minCirurgioes entao
 
-                        se qtdPediatras >= minPediatras entao
-
-                           se qtdCirurgioes >= minCirurgioes entao
-
-                              // validação do limite de 20 médicos num plantão
-                              se totalEspec <= limiteMax entao
-                                 escreval("")
-                                 escreval("SUCESSO: Plantão pronto para ser publicado!")
-                                 escreval("Pressione Enter para voltar ao menu.")
-                                 leia(opcaoCad)
-                                 continuarPlan <- verdadeiro
-                              senao
-                                 limpatela
-                                 escreval("ERRO: O plantão excede o limite máximo de 20 médicos.")
-                              fimse
-
+                           // validação do limite de 20 médicos num plantão
+                           se totalEspec <= limiteMax entao
+                              escreval("")
+                              escreval("SUCESSO: Plantão pronto para ser publicado!")
+                              escreval("Pressione Enter para voltar ao menu.")
+                              leia(opcaoCad)
+                              continuarPlan <- verdadeiro
                            senao
                               limpatela
-                              escreval("ERRO: O plantão exige no mínimo 3 cirurgiões.")
+                              escreval("ERRO: O plantão excede o limite máximo de 20 médicos.")
                            fimse
 
                         senao
                            limpatela
-                           escreval("ERRO: O plantão exige no mínimo 2 pediatras.")
+                           escreval("ERRO: O plantão exige no mínimo 3 cirurgiões.")
                         fimse
 
                      senao
                         limpatela
-                        escreval("ERRO: O plantão exige no mínimo 4 clínicos.")
+                        escreval("ERRO: O plantão exige no mínimo 2 pediatras.")
                      fimse
 
                   senao
                      limpatela
-                     escreval("ERRO: Todas as quantidades devem ser maiores que zero.")
+                     escreval("ERRO: O plantão exige no mínimo 4 clínicos.")
                   fimse
 
                   se continuarPlan = falso entao
