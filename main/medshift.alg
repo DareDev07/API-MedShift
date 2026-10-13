@@ -1,4 +1,3 @@
-
 algoritmo "Hospital Aurora"
 
 var
