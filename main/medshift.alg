@@ -31,6 +31,7 @@ var
 
    i : inteiro
    duplicado : logico
+   qtdTurnosMedico : inteiro
    turnoInserido : caractere
    nomeInserido : caractere
 
@@ -106,12 +107,15 @@ inicio
                   escreval("")
                   escreval("ERRO: Opção inválida.")
                senao
-                  // Verificar duplicidade
+                  // Verificar duplicidade e contar os turnos já cadastrados para o médico
                   duplicado <- falso
+                  qtdTurnosMedico <- 0
 
                   se posicao > 0 entao
                      para i de 1 ate posicao faca
                         se medicoNome[i] = nomeInserido entao
+                           qtdTurnosMedico <- qtdTurnosMedico + 1
+
                            se medicoDisp[i] = turnoInserido entao
                               duplicado <- verdadeiro
                            fimse
@@ -120,50 +124,56 @@ inicio
                   fimse
 
                   se duplicado = verdadeiro entao
-
                      escreval("")
                      escreval("ERRO: Este médico já está cadastrado neste turno.")
                      escreval("O cadastro não será repetido.")
-
                   senao
 
-                     // Cadastrar somente se não houver duplicidade
-                     posicao <- posicao + 1
-                     medicoNome[posicao] <- nomeInserido
-                     medicoDisp[posicao] <- turnoInserido
-
-                     // especialidade é registrada como número
-                     escreval("")
-                     escreval("Especialidade: ")
-                     escreval("1 - Clínico geral")
-                     escreval("2 - Pediatra")
-                     escreval("3 - Cirurgião")
-                     escreva("Escolha uma opção: ")
-                     leia(opcaoEspecialidade)
-
-                     // especialidade é convertida de número para texto
-                     // o ID é gerado automaticamente
-                     se opcaoEspecialidade = 1 entao
-                        medicoEspec[posicao] <- "Clínico geral"
-                        medicoID[posicao] <- 100 + posicao
+                     // Cada médico pode ser alocado em no máximo 2 turnos
+                     se qtdTurnosMedico >= 2 entao
+                        escreval("")
+                        escreval("ERRO: Este médico já está cadastrado em 2 turnos.")
+                        escreval("Não é permitido cadastrar um terceiro turno para o mesmo médico.")
                      senao
-                        se opcaoEspecialidade = 2 entao
-                           medicoEspec[posicao] <- "Pediatra"
-                           medicoID[posicao] <- 200 + posicao
+
+                        // Cadastrar somente se não houver duplicidade e o limite de turnos não tiver sido atingido
+                        posicao <- posicao + 1
+                        medicoNome[posicao] <- nomeInserido
+                        medicoDisp[posicao] <- turnoInserido
+
+                        // especialidade é registrada como número
+                        escreval("")
+                        escreval("Especialidade: ")
+                        escreval("1 - Clínico geral")
+                        escreval("2 - Pediatra")
+                        escreval("3 - Cirurgião")
+                        escreva("Escolha uma opção: ")
+                        leia(opcaoEspecialidade)
+
+                        // especialidade é convertida de número para texto
+                        // o ID é gerado automaticamente
+                        se opcaoEspecialidade = 1 entao
+                           medicoEspec[posicao] <- "Clínico geral"
+                           medicoID[posicao] <- 100 + posicao
                         senao
-                           se opcaoEspecialidade = 3 entao
-                              medicoEspec[posicao] <- "Cirurgião"
-                              medicoID[posicao] <- 300 + posicao
+                           se opcaoEspecialidade = 2 entao
+                              medicoEspec[posicao] <- "Pediatra"
+                              medicoID[posicao] <- 200 + posicao
                            senao
-                              medicoEspec[posicao] <- "Inválida"
-                              medicoID[posicao] <- posicao
+                              se opcaoEspecialidade = 3 entao
+                                 medicoEspec[posicao] <- "Cirurgião"
+                                 medicoID[posicao] <- 300 + posicao
+                              senao
+                                 medicoEspec[posicao] <- "Inválida"
+                                 medicoID[posicao] <- posicao
+                              fimse
                            fimse
                         fimse
+
+                        escreval("")
+                        escreval("ID gerado: ", medicoID[posicao])
+
                      fimse
-
-                     escreval("")
-                     escreval("ID gerado: ", medicoID[posicao])
-
                   fimse
                fimse
 
