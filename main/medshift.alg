@@ -374,6 +374,11 @@ inicio
 
                               fimse
 
+                              escreval("")
+                              escreval("SUCESSO: Plantão pronto para ser publicado!")
+                              escreval("Pressione Enter para voltar ao menu.")
+                              leia(opcaoCad)
+                              continuarPlan <- verdadeiro
                            senao
                               limpatela
                               escreval("ERRO: O plantão excede o limite máximo de 20 médicos.")
