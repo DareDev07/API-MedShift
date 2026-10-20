@@ -34,6 +34,17 @@ var
    turnoInserido : caractere
    nomeInserido : caractere
 
+   // Variáveis adicionadas para os itens 8 e 9
+   j : inteiro
+   k : inteiro
+   idEscolhido : inteiro
+   posMedico : inteiro
+   especialidadeNecessaria : caractere
+   medicoEncontrado : logico
+   medicoValido : logico
+   duplicadoEscala : logico
+   escalaPos : vetor[1..20] de inteiro
+
 inicio
    // inicialização de variáveis com valores definidos
    cadMedicos <- falso
@@ -43,12 +54,13 @@ inicio
    opcaoMenu <- 0
 
    // menu inicial, onde o usuário escolhe o que fazer
-   enquanto opcaoMenu <> 3 faca
+   enquanto opcaoMenu <> 4 faca
 
       escreval("=== MedShift - Hospital Aurora ===")
       escreval("1 - Cadastrar médicos")
       escreval("2 - Criar plantão")
-      escreval("3 - Encerrar")
+      escreval("3 - Consultar médicos cadastrados")
+      escreval("4 - Encerrar")
       escreva("Escolha uma opção: ")
       leia(opcaoMenu)
 
@@ -266,6 +278,102 @@ inicio
 
                            // validação do limite de 20 médicos num plantão
                            se totalEspec <= limiteMax entao
+
+                              se posicao = 0 entao
+                                 escreval("")
+                                 escreval("ERRO: Não há médicos cadastrados para criar o plantão.")
+                                 continuarPlan <- verdadeiro
+                              senao
+
+                                 medicoValido <- verdadeiro
+
+                                 // Verificar se existem médicos suficientes para cada especialidade e turno
+                                 para i de 1 ate totalEspec faca
+
+                                    se i <= qtdClinicos entao
+                                       especialidadeNecessaria <- "Clínico geral"
+                                    senao
+                                       se i <= qtdClinicos + qtdPediatras entao
+                                          especialidadeNecessaria <- "Pediatra"
+                                       senao
+                                          especialidadeNecessaria <- "Cirurgião"
+                                       fimse
+                                    fimse
+
+                                    medicoValido <- falso
+
+                                    enquanto medicoValido = falso faca
+
+                                       escreval("")
+                                       escreval("Especialidade necessária: ", especialidadeNecessaria)
+                                       escreval("Turno necessário: ", opcaoTurno)
+                                       escreva("Informe o ID do médico: ")
+                                       leia(idEscolhido)
+
+                                       posMedico <- 0
+                                       medicoEncontrado <- falso
+
+                                       para j de 1 ate posicao faca
+                                          se medicoID[j] = idEscolhido entao
+                                             posMedico <- j
+                                             medicoEncontrado <- verdadeiro
+                                          fimse
+                                       fimpara
+
+                                       se medicoEncontrado = falso entao
+                                          escreval("ERRO: ID de médico não encontrado.")
+                                       senao
+                                          se medicoEspec[posMedico] <> especialidadeNecessaria entao
+                                             escreval("ERRO: A especialidade do médico não corresponde ao plantão.")
+                                          senao
+                                             se medicoDisp[posMedico] <> opcaoTurno entao
+                                                escreval("ERRO: A disponibilidade do médico não corresponde ao turno selecionado.")
+                                             senao
+
+                                                duplicadoEscala <- falso
+
+                                                se i > 1 entao
+                                                   para k de 1 ate i - 1 faca
+                                                      se escalaPos[k] = posMedico entao
+                                                         duplicadoEscala <- verdadeiro
+                                                      fimse
+                                                   fimpara
+                                                fimse
+
+                                                se duplicadoEscala = verdadeiro entao
+                                                   escreval("ERRO: Este médico já foi selecionado para este plantão.")
+                                                senao
+                                                   escalaPos[i] <- posMedico
+                                                   medicoValido <- verdadeiro
+                                                fimse
+
+                                             fimse
+                                          fimse
+                                       fimse
+
+                                    fimenquanto
+
+                                 fimpara
+
+                                 escreval("")
+                                 escreval("SUCESSO: Plantão pronto para ser publicado!")
+                                 escreval("")
+                                 escreval("=== MÉDICOS SELECIONADOS ===")
+
+                                 para i de 1 ate totalEspec faca
+                                    escreval("ID: ", medicoID[escalaPos[i]])
+                                    escreval("Nome: ", medicoNome[escalaPos[i]])
+                                    escreval("Especialidade: ", medicoEspec[escalaPos[i]])
+                                    escreval("Disponibilidade: ", medicoDisp[escalaPos[i]])
+                                    escreval("")
+                                 fimpara
+
+                                 escreval("Pressione Enter para voltar ao menu.")
+                                 leia(opcaoCad)
+                                 continuarPlan <- verdadeiro
+
+                              fimse
+
                               escreval("")
                               escreval("SUCESSO: Plantão pronto para ser publicado!")
                               escreval("Pressione Enter para voltar ao menu.")
@@ -305,17 +413,42 @@ inicio
             limpatela
 
          senao
-            se opcaoMenu <> 3 entao
+            // opção 3 do menu: consultar médicos cadastrados
+            se opcaoMenu = 3 entao
+
                limpatela
-               escreval("ERRO: Opção inválida.")
+               escreval("=== MÉDICOS CADASTRADOS ===")
+
+               se posicao = 0 entao
+                  escreval("ERRO: Não há médicos cadastrados para serem apresentados.")
+               senao
+                  para i de 1 ate posicao faca
+                     escreval("")
+                     escreval("Identificador: ", medicoID[i])
+                     escreval("Nome: ", medicoNome[i])
+                     escreval("Especialidade: ", medicoEspec[i])
+                     escreval("Disponibilidade: ", medicoDisp[i])
+                  fimpara
+               fimse
+
                escreval("")
+               escreval("Pressione Enter para voltar ao menu.")
+               leia(opcaoCad)
+               limpatela
+
+            senao
+               se opcaoMenu <> 4 entao
+                  limpatela
+                  escreval("ERRO: Opção inválida.")
+                  escreval("")
+               fimse
             fimse
          fimse
       fimse
 
    fimenquanto
 
-   // opção 3 do menu: encerrar programa
+   // opção 4 do menu: encerrar programa
    escreval("")
    escreval("Sistema encerrado.")
 
