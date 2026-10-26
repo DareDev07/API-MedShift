@@ -66,6 +66,16 @@ var
    faltam : inteiro
    faltaMedico : logico
 
+   //dados dos plantoes concluidos para o resumo diario
+   totalPlantoesResumo : inteiro
+   totalAlocacoesResumo : inteiro
+   turnoPlantaoResumo : vetor[1..300] de caractere
+   medicoAlocadoResumo : vetor[1..6000] de inteiro
+   turnoAlocadoResumo : vetor[1..6000] de caractere
+   resumoTurno : inteiro
+   resumoPlantoesTurno : inteiro
+   resumoMedicosTurno : inteiro
+
 inicio
    // inicialização de variáveis com valores definidos
    cadMedicos <- falso
@@ -74,6 +84,10 @@ inicio
    posicao <- 0
    qtdMedicos <- 0
    opcaoMenu <- 0
+
+   //inicializar os registros do resumo diario
+   totalPlantoesResumo <- 0
+   totalAlocacoesResumo <- 0
 
    nomeTurno[1] <- "Manhã"
    nomeTurno[2] <- "Tarde"
@@ -94,14 +108,15 @@ inicio
    minEsp[3] <- minCirurgioes
 
    // menu inicial, onde o usuário escolhe o que fazer
-   enquanto opcaoMenu <> 5 faca
+   enquanto opcaoMenu <> 6 faca
 
       escreval("=== MedShift - Hospital Aurora ===")
       escreval("1 - Cadastrar médicos")
       escreval("2 - Criar plantão")
       escreval("3 - Consultar médicos cadastrados")
       escreval("4 - Verificar cobertura mínima")
-      escreval("5 - Encerrar")
+      escreval("5 - Resumo diario dos plantoes")
+      escreval("6 - Encerrar")
       escreva("Escolha uma opção: ")
       leia(opcaoMenu)
 
@@ -491,6 +506,20 @@ inicio
                                  escreval("")
                               fimpara
 
+                               // NOVO: registrar somente um plantao validado e concluido
+                               se (totalPlantoesResumo < 300) e (totalAlocacoesResumo + totalEspec <= 6000) entao
+                                  totalPlantoesResumo <- totalPlantoesResumo + 1
+                                  turnoPlantaoResumo[totalPlantoesResumo] <- opcaoTurno
+                                  para i de 1 ate totalEspec faca
+                                     totalAlocacoesResumo <- totalAlocacoesResumo + 1
+                                     medicoAlocadoResumo[totalAlocacoesResumo] <- escalaPos[i]
+                                     turnoAlocadoResumo[totalAlocacoesResumo] <- opcaoTurno
+                                  fimpara
+                               senao
+                                  escreval("AVISO: Limite do historico do resumo atingido.")
+                               fimse
+                               // FIM NOVO: registro do plantao
+
                               escreval("Pressione Enter para voltar ao menu.")
                               leia(teclaEnter)
                               continuarPlan <- verdadeiro
@@ -623,6 +652,54 @@ inicio
 
       fimse
 
+      //opcao 5 - resumo diario dos plantoes concluidos
+      se opcaoMenu = 5 entao
+         limpatela
+         escreval("=== RESUMO DIARIO DOS PLANTOES ===")
+
+         se totalPlantoesResumo = 0 entao
+            escreval("Nenhum plantao concluido para apresentar no resumo.")
+         senao
+            para resumoTurno de 1 ate 3 faca
+               resumoPlantoesTurno <- 0
+               resumoMedicosTurno <- 0
+               escreval("")
+               escreval("=== TURNO: ", nomeTurno[resumoTurno], " ===")
+
+               //contar os plantoes deste turno
+               para j de 1 ate totalPlantoesResumo faca
+                  se turnoPlantaoResumo[j] = nomeTurno[resumoTurno] entao
+                     resumoPlantoesTurno <- resumoPlantoesTurno + 1
+                  fimse
+               fimpara
+
+               //mostrar os medicos escalados neste turno
+               para j de 1 ate totalAlocacoesResumo faca
+                  se turnoAlocadoResumo[j] = nomeTurno[resumoTurno] entao
+                     resumoMedicosTurno <- resumoMedicosTurno + 1
+                     escreval("ID: ", medicoID[medicoAlocadoResumo[j]])
+                     escreval("Nome: ", medicoNome[medicoAlocadoResumo[j]])
+                     escreval("Especialidade: ", medicoEspec[medicoAlocadoResumo[j]])
+                     escreval("")
+                  fimse
+               fimpara
+
+               escreval("Plantoes concluidos: ", resumoPlantoesTurno)
+               escreval("Alocacoes de medicos: ", resumoMedicosTurno)
+            fimpara
+
+            escreval("")
+            escreval("TOTAL DE PLANTOES: ", totalPlantoesResumo)
+            escreval("TOTAL DE ALOCACOES: ", totalAlocacoesResumo)
+         fimse
+
+         escreval("")
+         escreval("Pressione Enter para voltar ao menu.")
+         leia(teclaEnter)
+         limpatela
+      fimse
+      // FIM NOVO: resumo diario
+
       // opção inválida do menu
       se opcaoMenu < 1 entao
          limpatela
@@ -630,7 +707,7 @@ inicio
          escreval("")
       fimse
 
-      se opcaoMenu > 5 entao
+      se opcaoMenu > 6 entao
          limpatela
          escreval("ERRO: Opção inválida.")
          escreval("")
@@ -638,7 +715,7 @@ inicio
 
    fimenquanto
 
-   // opção 5 do menu: encerrar programa
+   // opção 6 do menu: encerrar programa
    escreval("")
    escreval("Sistema encerrado.")
 
