@@ -3,8 +3,6 @@
 <body>
 <img src="README_imgs/README_header.jpg" width="100%">
 
-#
-
 ## Introdução
 
 O MedShift é um sistema desenvolvido para auxiliar os colaboradores do Hospital Aurora na criação e validação de escalas médicas. Antes, as escalas eram elaboradas manualmente, tornando o processo mais suscetível a conflitos de horário, distribuição inadequada de profissionais entre turnos e outros erros operacionais. O MedShift digitaliza esse processo, oferecendo uma forma mais rápida, organizada e confiável de montar as escalas.
@@ -34,6 +32,8 @@ Bianca Miranda | Dev Team | <a href="https://github.com/BIANCA-MIRANDA05">![Stat
 Clara Teixeira | Product Owner | <a href="https://github.com/CLARA-tms">![Static Badge](https://img.shields.io/badge/Perfil-profile?style=plastic&logo=github&labelColor=%238563ff&color=%236b6b6b)</a> | <img src="https://avatars.githubusercontent.com/u/112821570?v=4" width="60">
 Gabriel Reis | Dev Team | <a href="https://github.com/Gabriel-Britoo">![Static Badge](https://img.shields.io/badge/Perfil-profile?style=plastic&logo=github&labelColor=%238563ff&color=%236b6b6b)</a> | <img src="https://avatars.githubusercontent.com/u/168742573?v=4" width="60">
 Nicolly Vitória | Scrum Master | <a href="https://github.com/nicolly-vc">![Static Badge](https://img.shields.io/badge/Perfil-profile?style=plastic&logo=github&labelColor=%238563ff&color=%236b6b6b)</a> | <img src="https://avatars.githubusercontent.com/u/321569573?v=4" width="60">
+
+#
 
 <img src="README_imgs/README_footer.jpg" width="100%">
 </body>
