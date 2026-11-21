@@ -76,6 +76,26 @@ var
    resumoPlantoesTurno : inteiro
    resumoMedicosTurno : inteiro
 
+   // Tarefas 17 e 18: escala semanal
+   nomeDia : vetor[1..5] de caractere
+   // 15 turnos x postosPorTurno = 60 postos
+   // índice do turno = (dia - 1) * 3 + turno
+   // índice do posto = (índice do turno - 1) * postosPorTurno + posto
+   escalaSemana : vetor[1..60] de inteiro
+   postosPorTurno : inteiro
+   limiteSemanal : inteiro
+   opcaoSemana : inteiro
+   semanaAtiva : logico
+   diaEscolhido : inteiro
+   turnoEscolhido : inteiro
+   idxSemana : inteiro
+   idxOutro : inteiro
+   postoLivre : inteiro
+   p : inteiro
+   s : inteiro
+   qtdPlantoesMedico : inteiro
+   regraOk : logico
+
 inicio
    // inicialização de variáveis com valores definidos
    cadMedicos <- falso
@@ -107,8 +127,20 @@ inicio
    minEsp[2] <- minPediatras
    minEsp[3] <- minCirurgioes
 
+   // Tarefas 17 e 18
+   nomeDia[1] <- "Segunda"
+   nomeDia[2] <- "Terça"
+   nomeDia[3] <- "Quarta"
+   nomeDia[4] <- "Quinta"
+   nomeDia[5] <- "Sexta"
+   postosPorTurno <- 4
+   limiteSemanal <- 5
+   para s de 1 ate 60 faca
+      escalaSemana[s] <- 0
+   fimpara
+
    // menu inicial, onde o usuário escolhe o que fazer
-   enquanto opcaoMenu <> 6 faca
+   enquanto opcaoMenu <> 7 faca
 
       escreval("=== MedShift - Hospital Aurora ===")
       escreval("1 - Cadastrar médicos")
@@ -116,7 +148,8 @@ inicio
       escreval("3 - Consultar médicos cadastrados")
       escreval("4 - Verificar cobertura mínima")
       escreval("5 - Resumo diario dos plantoes")
-      escreval("6 - Encerrar")
+      escreval("6 - Escala semanal")
+      escreval("7 - Encerrar")
       escreva("Escolha uma opção: ")
       leia(opcaoMenu)
 
@@ -700,6 +733,215 @@ inicio
       fimse
       // FIM NOVO: resumo diario
 
+      // ------------------------------------------------------------
+      // opção 6: escala semanal (tarefas 17 e 18)
+      // ------------------------------------------------------------
+      se opcaoMenu = 6 entao
+
+         limpatela
+         semanaAtiva <- verdadeiro
+
+         enquanto semanaAtiva = verdadeiro faca
+
+            escreval("=== ESCALA SEMANAL ===")
+            escreval("1 - Visualizar escala semanal")
+            escreval("2 - Alocar médico em um turno")
+            escreval("3 - Voltar ao menu")
+            escreva("Escolha uma opção: ")
+            leia(opcaoSemana)
+            limpatela
+
+            // ---------- tarefa 17: visualizar a semana completa ----------
+            se opcaoSemana = 1 entao
+
+               escreval("=== ESCALA DA SEMANA (SEG A SEX) ===")
+
+               para diaEscolhido de 1 ate 5 faca
+                  escreval("")
+                  escreval("##### ", nomeDia[diaEscolhido], " #####")
+
+                  para turnoEscolhido de 1 ate 3 faca
+                     idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+                     escreval("--- Turno: ", nomeTurno[turnoEscolhido], " ---")
+
+                     para p de 1 ate postosPorTurno faca
+                        s <- (idxSemana - 1) * postosPorTurno + p
+                        se escalaSemana[s] = 0 entao
+                           escreval("   Posto ", p, ": VAGO")
+                        senao
+                           escreval("   Posto ", p, ": ID ", medicoID[escalaSemana[s]], " - ", medicoNome[escalaSemana[s]], " (", medicoEspec[escalaSemana[s]], ")")
+                        fimse
+                     fimpara
+                  fimpara
+               fimpara
+
+               escreval("")
+               escreval("Pressione Enter para voltar.")
+               leia(teclaEnter)
+               limpatela
+
+            fimse
+
+            // ---------- tarefa 18: alocar médico ----------
+            se opcaoSemana = 2 entao
+
+               escreval("=== ALOCAR MÉDICO NA ESCALA ===")
+
+               diaEscolhido <- 0
+               enquanto (diaEscolhido < 1) ou (diaEscolhido > 5) faca
+                  escreval("Dia: 1-Segunda | 2-Terça | 3-Quarta | 4-Quinta | 5-Sexta")
+                  escreva("Escolha o dia: ")
+                  leia(diaEscolhido)
+                  se (diaEscolhido < 1) ou (diaEscolhido > 5) entao
+                     escreval("ERRO: Opção inválida.")
+                  fimse
+               fimenquanto
+
+               turnoEscolhido <- 0
+               enquanto (turnoEscolhido < 1) ou (turnoEscolhido > 3) faca
+                  escreval("Turno: 1-Manhã | 2-Tarde | 3-Noite")
+                  escreva("Escolha o turno: ")
+                  leia(turnoEscolhido)
+                  se (turnoEscolhido < 1) ou (turnoEscolhido > 3) entao
+                     escreval("ERRO: Opção inválida.")
+                  fimse
+               fimenquanto
+
+               idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+
+               // procura o primeiro posto vago do turno
+               postoLivre <- 0
+               para p de 1 ate postosPorTurno faca
+                  se postoLivre = 0 entao
+                     se escalaSemana[(idxSemana - 1) * postosPorTurno + p] = 0 entao
+                        postoLivre <- p
+                     fimse
+                  fimse
+               fimpara
+
+               se postoLivre = 0 entao
+                  escreval("")
+                  escreval("ERRO: Todos os postos de ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido], " já estão ocupados.")
+               senao
+
+                  escreval("")
+                  escreval("Alocando em: ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido])
+                  escreva("Informe o ID do médico: ")
+                  leia(idEscolhido)
+
+                  regraOk <- verdadeiro
+
+                  // regra: médico precisa existir e estar disponível no turno
+                  posMedico <- 0
+                  medicoEncontrado <- falso
+                  para j de 1 ate posicao faca
+                     se medicoID[j] = idEscolhido entao
+                        medicoEncontrado <- verdadeiro
+                        se medicoDisp[j] = nomeTurno[turnoEscolhido] entao
+                           posMedico <- j
+                        fimse
+                     fimse
+                  fimpara
+
+                  se medicoEncontrado = falso entao
+                     escreval("ERRO: ID de médico não encontrado.")
+                     regraOk <- falso
+                  fimse
+
+                  se regraOk = verdadeiro entao
+                     se posMedico = 0 entao
+                        escreval("ERRO: A disponibilidade do médico não corresponde ao turno selecionado.")
+                        regraOk <- falso
+                     fimse
+                  fimse
+
+                  // regra: mesmo médico não pode repetir no mesmo turno
+                  se regraOk = verdadeiro entao
+                     para p de 1 ate postosPorTurno faca
+                        s <- (idxSemana - 1) * postosPorTurno + p
+                        se escalaSemana[s] > 0 entao
+                           se medicoID[escalaSemana[s]] = idEscolhido entao
+                              regraOk <- falso
+                           fimse
+                        fimse
+                     fimpara
+                     se regraOk = falso entao
+                        escreval("ERRO: Este médico já foi alocado neste turno.")
+                     fimse
+                  fimse
+
+                  // R8: limite semanal de plantões por médico
+                  se regraOk = verdadeiro entao
+                     qtdPlantoesMedico <- 0
+                     para s de 1 ate 15 * postosPorTurno faca
+                        se escalaSemana[s] > 0 entao
+                           se medicoID[escalaSemana[s]] = idEscolhido entao
+                              qtdPlantoesMedico <- qtdPlantoesMedico + 1
+                           fimse
+                        fimse
+                     fimpara
+                     se qtdPlantoesMedico >= limiteSemanal entao
+                        escreval("ERRO: Este médico já atingiu o limite de ", limiteSemanal, " plantões na semana.")
+                        regraOk <- falso
+                     fimse
+                  fimse
+
+                  // R9: sem manhã logo após plantão noturno (nos dois sentidos)
+                  se regraOk = verdadeiro entao
+                     idxOutro <- 0
+                     se (turnoEscolhido = 1) e (diaEscolhido > 1) entao
+                        idxOutro <- (diaEscolhido - 2) * 3 + 3
+                     fimse
+                     se (turnoEscolhido = 3) e (diaEscolhido < 5) entao
+                        idxOutro <- diaEscolhido * 3 + 1
+                     fimse
+
+                     se idxOutro > 0 entao
+                        para p de 1 ate postosPorTurno faca
+                           s <- (idxOutro - 1) * postosPorTurno + p
+                           se escalaSemana[s] > 0 entao
+                              se medicoID[escalaSemana[s]] = idEscolhido entao
+                                 regraOk <- falso
+                              fimse
+                           fimse
+                        fimpara
+                        se regraOk = falso entao
+                           escreval("ERRO: Não é permitido escalar o médico na manhã seguinte a um plantão noturno.")
+                        fimse
+                     fimse
+                  fimse
+
+                  // tudo validado: grava a alocação
+                  se regraOk = verdadeiro entao
+                     escalaSemana[(idxSemana - 1) * postosPorTurno + postoLivre] <- posMedico
+                     escreval("")
+                     escreval("SUCESSO: ", medicoNome[posMedico], " alocado(a) em ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido], ", posto ", postoLivre, ".")
+                  fimse
+
+               fimse
+
+               escreval("")
+               escreval("Pressione Enter para voltar.")
+               leia(teclaEnter)
+               limpatela
+
+            fimse
+
+            se opcaoSemana = 3 entao
+               semanaAtiva <- falso
+            fimse
+
+            se (opcaoSemana < 1) ou (opcaoSemana > 3) entao
+               escreval("ERRO: Opção inválida.")
+               escreval("")
+            fimse
+
+         fimenquanto
+
+         limpatela
+
+      fimse
+
       // opção inválida do menu
       se opcaoMenu < 1 entao
          limpatela
@@ -707,7 +949,7 @@ inicio
          escreval("")
       fimse
 
-      se opcaoMenu > 6 entao
+      se opcaoMenu > 7 entao
          limpatela
          escreval("ERRO: Opção inválida.")
          escreval("")
@@ -715,7 +957,7 @@ inicio
 
    fimenquanto
 
-   // opção 6 do menu: encerrar programa
+   // opção 7 do menu: encerrar programa
    escreval("")
    escreval("Sistema encerrado.")
 
