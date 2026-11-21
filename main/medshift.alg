@@ -49,6 +49,17 @@ var
    duplicadoEscala : logico
    escalaPos : vetor[1..20] de inteiro
 
+   // Controle para pausar e retomar o plantão em andamento
+   plantaoPendente : logico
+   pausarPlantao : logico
+   qtdSalva : inteiro
+   inicioSelecao : inteiro
+   opcaoRetomar : inteiro
+   turnoSalvo : caractere
+   clinicosSalvo : inteiro
+   pediatrasSalvo : inteiro
+   cirurgioesSalvo : inteiro
+
    // Variáveis da verificação de cobertura
    nomeTurno : vetor[1..3] de caractere
    nomeEsp : vetor[1..3] de caractere
@@ -66,7 +77,7 @@ var
    faltam : inteiro
    faltaMedico : logico
 
-   //dados dos plantoes concluidos para o resumo diario
+   // Dados dos plantões concluídos para o resumo diário
    totalPlantoesResumo : inteiro
    totalAlocacoesResumo : inteiro
    turnoPlantaoResumo : vetor[1..300] de caractere
@@ -96,16 +107,56 @@ var
    qtdPlantoesMedico : inteiro
    regraOk : logico
 
+   // Tarefas 19 e 20: cobertura da escala semanal
+   qtdEscalaEsp : vetor[1..3] de inteiro
+   falhasEsp : vetor[1..3] de inteiro
+   totalFalhas : inteiro
+   falhaTurno : logico
+
+// ------------------------------------------------------------
+// FUNÇÃO: IDENTIFICAR MÉDICO PELO ID
+// Retorna a posição do médico no vetor.
+// Se o ID não existir, retorna 0.
+// Se houver mais de uma ocorrência do ID,
+// dá preferência à posição do turno escolhido.
+// ------------------------------------------------------------
+
+funcao identificarMedico(idBusca: inteiro; turnoBusca: caractere): inteiro
+var
+   jBusca : inteiro
+   posBusca : inteiro
 inicio
-   // inicialização de variáveis com valores definidos
+   posBusca <- 0
+
+   para jBusca de 1 ate posicao faca
+      se medicoID[jBusca] = idBusca entao
+
+         se posBusca = 0 entao
+            posBusca <- jBusca
+         fimse
+
+         se medicoDisp[jBusca] = turnoBusca entao
+            posBusca <- jBusca
+         fimse
+
+      fimse
+   fimpara
+
+   retorne posBusca
+fimfuncao
+
+inicio
+   // Inicialização de variáveis com valores definidos
    cadMedicos <- falso
    cadPlantao <- falso
    continuarPlan <- falso
+   plantaoPendente <- falso
+   qtdSalva <- 0
    posicao <- 0
    qtdMedicos <- 0
    opcaoMenu <- 0
 
-   //inicializar os registros do resumo diario
+   // Inicializar os registros do resumo diário
    totalPlantoesResumo <- 0
    totalAlocacoesResumo <- 0
 
@@ -117,7 +168,7 @@ inicio
    nomeEsp[2] <- "Pediatra"
    nomeEsp[3] <- "Cirurgião"
 
-   // definição de limites (usados no plantão e na cobertura)
+   // Definição de limites
    limiteMax <- 20
    minClinicos <- 4
    minPediatras <- 2
@@ -135,6 +186,7 @@ inicio
    nomeDia[5] <- "Sexta"
    postosPorTurno <- 4
    limiteSemanal <- 5
+   
    para s de 1 ate 60 faca
       escalaSemana[s] <- 0
    fimpara
@@ -153,8 +205,7 @@ inicio
       escreva("Escolha uma opção: ")
       leia(opcaoMenu)
 
-      // atualiza a contagem de médicos por turno e especialidade
-      // índice da cobertura = (turno - 1) * 3 + especialidade
+      // Atualiza a contagem de médicos por turno e especialidade
       para iTurno de 1 ate 3 faca
          para iEsp de 1 ate 3 faca
             cobertura[(iTurno - 1) * 3 + iEsp] <- 0
@@ -176,7 +227,7 @@ inicio
       fimse
 
       // ------------------------------------------------------------
-      // opção 1: cadastrar médicos
+      // OPÇÃO 1: CADASTRAR MÉDICOS
       // ------------------------------------------------------------
       se opcaoMenu = 1 entao
 
@@ -218,7 +269,7 @@ inicio
                   escreval("")
                   escreval("ERRO: Opção inválida.")
                senao
-                  // verifica duplicidade e conta turnos já cadastrados do médico
+
                   duplicado <- falso
                   qtdTurnosMedico <- 0
                   posPrimeiro <- 0
@@ -245,7 +296,6 @@ inicio
                      escreval("O cadastro não será repetido.")
                   senao
 
-                     // cada médico pode ser alocado em no máximo 2 turnos
                      se qtdTurnosMedico >= 2 entao
                         escreval("")
                         escreval("ERRO: Este médico já está cadastrado em 2 turnos.")
@@ -253,7 +303,6 @@ inicio
                      senao
 
                         se posPrimeiro > 0 entao
-                           // mesmo médico em outro turno: mantém a especialidade
                            escreval("")
                            escreval("Médico já cadastrado como ", medicoEspec[posPrimeiro], ".")
                            escreval("A especialidade será mantida.")
@@ -263,7 +312,6 @@ inicio
                               fimse
                            fimpara
                         senao
-                           // médico novo: valida a especialidade antes de cadastrar
                            especValida <- falso
                            enquanto especValida = falso faca
                               escreval("")
@@ -286,19 +334,16 @@ inicio
                            fimenquanto
                         fimse
 
-                        // só grava depois de tudo validado
                         posicao <- posicao + 1
                         medicoNome[posicao] <- nomeInserido
                         medicoDisp[posicao] <- turnoInserido
                         medicoEspec[posicao] <- nomeEsp[opcaoEspecialidade]
-                        // um ID por médico: 1xx clínico, 2xx pediatra, 3xx cirurgião
+
                         se posPrimeiro > 0 entao
-                           // médico já conhecido: reaproveita o ID
                            medicoID[posicao] <- medicoID[posPrimeiro]
                            escreval("")
                            escreval("ID do médico (mantido): ", medicoID[posicao])
                         senao
-                           // médico novo: gera um ID novo
                            qtdMedicos <- qtdMedicos + 1
                            medicoID[posicao] <- opcaoEspecialidade * 100 + qtdMedicos
                            escreval("")
@@ -346,245 +391,421 @@ inicio
       fimse
 
       // ------------------------------------------------------------
-      // opção 2: criar plantão
+      // OPÇÃO 2: CRIAR PLANTÃO
       // ------------------------------------------------------------
       se opcaoMenu = 2 entao
 
          limpatela
          cadPlantao <- verdadeiro
+         pausarPlantao <- falso
+         opcaoRetomar <- 2
+
+         // Verifica se existe um plantão pausado anteriormente
+         se plantaoPendente = verdadeiro entao
+            opcaoRetomar <- 0
+            enquanto (opcaoRetomar <> 1) e (opcaoRetomar <> 2) faca
+               escreval("=== PLANTÃO EM ANDAMENTO ===")
+               escreval("Turno: ", turnoSalvo, " | Médicos já selecionados: ", qtdSalva)
+               escreval("1 - Continuar de onde parou")
+               escreval("2 - Descartar e iniciar novo")
+               escreva("Escolha uma opção: ")
+               leia(opcaoRetomar)
+
+               se (opcaoRetomar <> 1) e (opcaoRetomar <> 2) entao
+                  limpatela
+                  escreval("ERRO: Opção inválida.")
+                  escreval("")
+               fimse
+            fimenquanto
+
+            se opcaoRetomar = 2 entao
+               plantaoPendente <- falso
+               qtdSalva <- 0
+            fimse
+            limpatela
+         fimse
 
          enquanto cadPlantao = verdadeiro faca
 
-            continuarPlan <- falso
+            se opcaoRetomar = 1 entao
+               // Restaura os dados salvos do plantão pausado
+               opcaoTurno <- turnoSalvo
+               qtdClinicos <- clinicosSalvo
+               qtdPediatras <- pediatrasSalvo
+               qtdCirurgioes <- cirurgioesSalvo
+               totalEspec <- qtdClinicos + qtdPediatras + qtdCirurgioes
+               inicioSelecao <- qtdSalva + 1
 
-            enquanto continuarPlan = falso faca
+               para iTurno de 1 ate 3 faca
+                  se nomeTurno[iTurno] = opcaoTurno entao
+                     idxTurno <- iTurno
+                  fimse
+               fimpara
 
-               escreval("=== ESCOLHER TURNO ===")
-               escreval("1 - Manhã")
-               escreval("2 - Tarde")
-               escreval("3 - Noite")
-               escreva("Escolha uma opção: ")
-               leia(opcaoTurno)
+               continuarPlan <- falso
 
-               se opcaoTurno = "1" entao
-                  opcaoTurno <- "Manhã"
-                  continuarPlan <- verdadeiro
-               senao
-                  se opcaoTurno = "2" entao
-                     opcaoTurno <- "Tarde"
+               enquanto continuarPlan = falso faca
+
+                  escreval("=== RETOMANDO PLANTÃO ===")
+                  escreval("Turno: ", opcaoTurno, " | Já selecionados: ", qtdSalva, " de ", totalEspec)
+
+                  para i de inicioSelecao ate totalEspec faca
+
+                     se i <= qtdClinicos entao
+                        especialidadeNecessaria <- "Clínico geral"
+                     senao
+                        se i <= qtdClinicos + qtdPediatras entao
+                           especialidadeNecessaria <- "Pediatra"
+                        senao
+                           especialidadeNecessaria <- "Cirurgião"
+                        fimse
+                     fimse
+
+                     medicoValido <- falso
+
+                     enquanto medicoValido = falso faca
+
+                        escreval("")
+                        escreval("Especialidade necessária: ", especialidadeNecessaria)
+                        escreval("Turno necessário: ", opcaoTurno)
+                        escreval("(Digite 0 para pausar e voltar ao menu)")
+                        escreva("Informe o ID do médico: ")
+                        leia(idEscolhido)
+
+                        se idEscolhido = 0 entao
+                           pausarPlantao <- verdadeiro
+                           plantaoPendente <- verdadeiro
+                           qtdSalva <- i - 1
+                           turnoSalvo <- opcaoTurno
+                           clinicosSalvo <- qtdClinicos
+                           pediatrasSalvo <- qtdPediatras
+                           cirurgioesSalvo <- qtdCirurgioes
+                           medicoValido <- verdadeiro
+                        senao
+                           posMedico <- identificarMedico(idEscolhido, opcaoTurno)
+                           medicoEncontrado <- posMedico <> 0
+
+                           se medicoEncontrado = falso entao
+                              escreval("ERRO: ID de médico não encontrado.")
+                           senao
+                              se medicoEspec[posMedico] <> especialidadeNecessaria entao
+                                 escreval("ERRO: A especialidade do médico não corresponde ao plantão.")
+                              senao
+                                 se medicoDisp[posMedico] <> opcaoTurno entao
+                                    escreval("ERRO: A disponibilidade do médico não corresponde ao turno selecionado.")
+                                 senao
+
+                                    duplicadoEscala <- falso
+
+                                    se i > 1 entao
+                                       para k de 1 ate i - 1 faca
+                                          se escalaPos[k] = posMedico entao
+                                             duplicadoEscala <- verdadeiro
+                                          fimse
+                                       fimpara
+                                    fimse
+
+                                    se duplicadoEscala = verdadeiro entao
+                                       escreval("ERRO: Este médico já foi selecionado para este plantão.")
+                                    senao
+                                       escalaPos[i] <- posMedico
+                                       medicoValido <- verdadeiro
+                                    fimse
+
+                                 fimse
+                              fimse
+                           fimse
+                        fimse
+
+                     fimenquanto
+
+                     se pausarPlantao = verdadeiro entao
+                        i <- totalEspec
+                     fimse
+
+                  fimpara
+
+                  se pausarPlantao = verdadeiro entao
+                     escreval("")
+                     escreval("Plantão pausado! ", qtdSalva, " médico(s) mantido(s) em rascunho.")
+                     escreval("Pressione Enter para voltar ao menu.")
+                     leia(teclaEnter)
                      continuarPlan <- verdadeiro
                   senao
-                     se opcaoTurno = "3" entao
-                        opcaoTurno <- "Noite"
+                     plantaoPendente <- falso
+                     qtdSalva <- 0
+
+                     escreval("")
+                     escreval("SUCESSO: Plantão pronto para ser publicado!")
+                     escreval("")
+                     escreval("=== MÉDICOS SELECIONADOS ===")
+
+                     para i de 1 ate totalEspec faca
+                        escreval("ID: ", medicoID[escalaPos[i]])
+                        escreval("Nome: ", medicoNome[escalaPos[i]])
+                        escreval("Especialidade: ", medicoEspec[escalaPos[i]])
+                        escreval("Disponibilidade: ", medicoDisp[escalaPos[i]])
+                        escreval("")
+                     fimpara
+
+                     se (totalPlantoesResumo < 300) e (totalAlocacoesResumo + totalEspec <= 6000) entao
+                        totalPlantoesResumo <- totalPlantoesResumo + 1
+                        turnoPlantaoResumo[totalPlantoesResumo] <- opcaoTurno
+                        para i de 1 ate totalEspec faca
+                           totalAlocacoesResumo <- totalAlocacoesResumo + 1
+                           medicoAlocadoResumo[totalAlocacoesResumo] <- escalaPos[i]
+                           turnoAlocadoResumo[totalAlocacoesResumo] <- opcaoTurno
+                        fimpara
+                     senao
+                        escreval("AVISO: Limite do historico do resumo atingido.")
+                     fimse
+
+                     escreval("Pressione Enter para voltar ao menu.")
+                     leia(teclaEnter)
+                     continuarPlan <- verdadeiro
+                  fimse
+
+               fimenquanto
+
+            senao
+
+               continuarPlan <- falso
+
+               enquanto continuarPlan = falso faca
+
+                  escreval("=== ESCOLHER TURNO ===")
+                  escreval("1 - Manhã")
+                  escreval("2 - Tarde")
+                  escreval("3 - Noite")
+                  escreva("Escolha uma opção: ")
+                  leia(opcaoTurno)
+
+                  se opcaoTurno = "1" entao
+                     opcaoTurno <- "Manhã"
+                     continuarPlan <- verdadeiro
+                  senao
+                     se opcaoTurno = "2" entao
+                        opcaoTurno <- "Tarde"
                         continuarPlan <- verdadeiro
                      senao
-                        limpatela
-                        escreval("ERRO: Opção inválida.")
-                        escreval("")
+                        se opcaoTurno = "3" entao
+                           opcaoTurno <- "Noite"
+                           continuarPlan <- verdadeiro
+                        senao
+                           limpatela
+                           escreval("ERRO: Opção inválida.")
+                           escreval("")
+                        fimse
                      fimse
                   fimse
-               fimse
 
-            fimenquanto
+               fimenquanto
 
-            // descobre o índice do turno escolhido (1 a 3)
-            para iTurno de 1 ate 3 faca
-               se nomeTurno[iTurno] = opcaoTurno entao
-                  idxTurno <- iTurno
-               fimse
-            fimpara
+               para iTurno de 1 ate 3 faca
+                  se nomeTurno[iTurno] = opcaoTurno entao
+                     idxTurno <- iTurno
+                  fimse
+               fimpara
 
-            limpatela
-            continuarPlan <- falso
+               limpatela
+               continuarPlan <- falso
 
-            enquanto continuarPlan = falso faca
+               enquanto continuarPlan = falso faca
 
-               escreval("=== PLANTÃO ===")
-               escreval("Turno selecionado: ", opcaoTurno)
-               escreval("")
+                  escreval("=== PLANTÃO ===")
+                  escreval("Turno selecionado: ", opcaoTurno)
+                  escreval("")
 
-               escreva("Quantidade de Clínicos Gerais: ")
-               leia(qtdClinicos)
+                  escreva("Quantidade de Clínicos Gerais: ")
+                  leia(qtdClinicos)
 
-               escreva("Quantidade de Pediatras: ")
-               leia(qtdPediatras)
+                  escreva("Quantidade de Pediatras: ")
+                  leia(qtdPediatras)
 
-               escreva("Quantidade de Cirurgiões: ")
-               leia(qtdCirurgioes)
+                  escreva("Quantidade de Cirurgiões: ")
+                  leia(qtdCirurgioes)
 
-               totalEspec <- qtdClinicos + qtdPediatras + qtdCirurgioes
+                  totalEspec <- qtdClinicos + qtdPediatras + qtdCirurgioes
 
-               // validação do mínimo de médicos selecionados
-               se qtdClinicos >= minClinicos entao
+                  se qtdClinicos >= minClinicos entao
 
-                  se qtdPediatras >= minPediatras entao
-                     se qtdCirurgioes >= minCirurgioes entao
+                     se qtdPediatras >= minPediatras entao
+                        se qtdCirurgioes >= minCirurgioes entao
 
-                        // validação do limite de 20 médicos num plantão
-                        se totalEspec <= limiteMax entao
+                           se totalEspec <= limiteMax entao
 
-                           // confere se há médicos cadastrados suficientes no turno
+                              faltaMedico <- falso
 
-                           faltaMedico <- falso
+                              se cobertura[(idxTurno - 1) * 3 + 1] < qtdClinicos entao
+                                 faltaMedico <- verdadeiro
+                              fimse
+                              se cobertura[(idxTurno - 1) * 3 + 2] < qtdPediatras entao
+                                 faltaMedico <- verdadeiro
+                              fimse
+                              se cobertura[(idxTurno - 1) * 3 + 3] < qtdCirurgioes entao
+                                 faltaMedico <- verdadeiro
+                              fimse
 
-                           se cobertura[(idxTurno - 1) * 3 + 1] < qtdClinicos entao
-                              faltaMedico <- verdadeiro
-                           fimse
-                           se cobertura[(idxTurno - 1) * 3 + 2] < qtdPediatras entao
-                              faltaMedico <- verdadeiro
-                           fimse
-                           se cobertura[(idxTurno - 1) * 3 + 3] < qtdCirurgioes entao
-                              faltaMedico <- verdadeiro
-                           fimse
+                              se faltaMedico = verdadeiro entao
 
-                           se faltaMedico = verdadeiro entao
+                                 limpatela
+                                 escreval("ERRO: Não há médicos cadastrados suficientes no turno ", opcaoTurno, ".")
+                                 escreval("Clínicos gerais: ", cobertura[(idxTurno - 1) * 3 + 1], " cadastrados / ", qtdClinicos, " solicitados")
+                                 escreval("Pediatras: ", cobertura[(idxTurno - 1) * 3 + 2], " cadastrados / ", qtdPediatras, " solicitados")
+                                 escreval("Cirurgiões: ", cobertura[(idxTurno - 1) * 3 + 3], " cadastrados / ", qtdCirurgioes, " solicitados")
+                                 escreval("")
+                                 escreval("Pressione Enter para voltar ao menu.")
+                                 leia(teclaEnter)
+                                 continuarPlan <- verdadeiro
 
-                              limpatela
-                              escreval("ERRO: Não há médicos cadastrados suficientes no turno ", opcaoTurno, ".")
-                              escreval("Clínicos gerais: ", cobertura[(idxTurno - 1) * 3 + 1], " cadastrados / ", qtdClinicos, " solicitados")
-                              escreval("Pediatras: ", cobertura[(idxTurno - 1) * 3 + 2], " cadastrados / ", qtdPediatras, " solicitados")
-                              escreval("Cirurgiões: ", cobertura[(idxTurno - 1) * 3 + 3], " cadastrados / ", qtdCirurgioes, " solicitados")
-                              escreval("")
-                              escreval("Pressione Enter para voltar ao menu.")
-                              leia(teclaEnter)
-                              continuarPlan <- verdadeiro
+                              senao
 
-                           senao
+                                 para i de 1 ate totalEspec faca
 
-                              para i de 1 ate totalEspec faca
-
-                                 se i <= qtdClinicos entao
-                                    especialidadeNecessaria <- "Clínico geral"
-                                 senao
-                                    se i <= qtdClinicos + qtdPediatras entao
-                                       especialidadeNecessaria <- "Pediatra"
+                                    se i <= qtdClinicos entao
+                                       especialidadeNecessaria <- "Clínico geral"
                                     senao
-                                       especialidadeNecessaria <- "Cirurgião"
+                                       se i <= qtdClinicos + qtdPediatras entao
+                                          especialidadeNecessaria <- "Pediatra"
+                                       senao
+                                          especialidadeNecessaria <- "Cirurgião"
+                                       fimse
                                     fimse
-                                 fimse
 
-                                 medicoValido <- falso
+                                    medicoValido <- falso
 
-                                 enquanto medicoValido = falso faca
+                                    enquanto medicoValido = falso faca
+
+                                       escreval("")
+                                       escreval("Especialidade necessária: ", especialidadeNecessaria)
+                                       escreval("Turno necessário: ", opcaoTurno)
+                                       escreval("(Digite 0 para pausar e voltar ao menu)")
+                                       escreva("Informe o ID do médico: ")
+                                       leia(idEscolhido)
+
+                                       se idEscolhido = 0 entao
+                                          pausarPlantao <- verdadeiro
+                                          plantaoPendente <- verdadeiro
+                                          qtdSalva <- i - 1
+                                          turnoSalvo <- opcaoTurno
+                                          clinicosSalvo <- qtdClinicos
+                                          pediatrasSalvo <- qtdPediatras
+                                          cirurgioesSalvo <- qtdCirurgioes
+                                          medicoValido <- verdadeiro
+                                       senao
+                                          posMedico <- identificarMedico(idEscolhido, opcaoTurno)
+                                          medicoEncontrado <- posMedico <> 0
+
+                                          se medicoEncontrado = falso entao
+                                             escreval("ERRO: ID de médico não encontrado.")
+                                          senao
+                                             se medicoEspec[posMedico] <> especialidadeNecessaria entao
+                                                escreval("ERRO: A especialidade do médico não corresponde ao plantão.")
+                                             senao
+                                                se medicoDisp[posMedico] <> opcaoTurno entao
+                                                   escreval("ERRO: A disponibilidade do médico não corresponde ao turno selecionado.")
+                                                senao
+
+                                                   duplicadoEscala <- falso
+
+                                                   se i > 1 entao
+                                                      para k de 1 ate i - 1 faca
+                                                         se escalaPos[k] = posMedico entao
+                                                            duplicadoEscala <- verdadeiro
+                                                         fimse
+                                                      fimpara
+                                                   fimse
+
+                                                   se duplicadoEscala = verdadeiro entao
+                                                      escreval("ERRO: Este médico já foi selecionado para este plantão.")
+                                                   senao
+                                                      escalaPos[i] <- posMedico
+                                                      medicoValido <- verdadeiro
+                                                   fimse
+
+                                                fimse
+                                             fimse
+                                          fimse
+                                       fimse
+
+                                    fimenquanto
+
+                                    se pausarPlantao = verdadeiro entao
+                                       i <- totalEspec
+                                    fimse
+
+                                 fimpara
+
+                                 se pausarPlantao = verdadeiro entao
+                                    escreval("")
+                                    escreval("Plantão pausado! ", qtdSalva, " médico(s) mantido(s) em rascunho.")
+                                    escreval("Pressione Enter para voltar ao menu.")
+                                    leia(teclaEnter)
+                                    continuarPlan <- verdadeiro
+                                 senao
+                                    plantaoPendente <- falso
+                                    qtdSalva <- 0
 
                                     escreval("")
-                                    escreval("Especialidade necessária: ", especialidadeNecessaria)
-                                    escreval("Turno necessário: ", opcaoTurno)
-                                    escreva("Informe o ID do médico: ")
-                                    leia(idEscolhido)
+                                    escreval("SUCESSO: Plantão pronto para ser publicado!")
+                                    escreval("")
+                                    escreval("=== MÉDICOS SELECIONADOS ===")
 
-                                    posMedico <- 0
-                                    medicoEncontrado <- falso
-
-                                    // o mesmo ID pode aparecer em 2 linhas (2 turnos):
-                                    // dá preferência à linha do turno escolhido
-                                    para j de 1 ate posicao faca
-                                       se medicoID[j] = idEscolhido entao
-                                          medicoEncontrado <- verdadeiro
-                                          se posMedico = 0 entao
-                                             posMedico <- j
-                                          senao
-                                             se medicoDisp[j] = opcaoTurno entao
-                                                posMedico <- j
-                                             fimse
-                                          fimse
-                                       fimse
+                                    para i de 1 ate totalEspec faca
+                                       escreval("ID: ", medicoID[escalaPos[i]])
+                                       escreval("Nome: ", medicoNome[escalaPos[i]])
+                                       escreval("Especialidade: ", medicoEspec[escalaPos[i]])
+                                       escreval("Disponibilidade: ", medicoDisp[escalaPos[i]])
+                                       escreval("")
                                     fimpara
 
-                                    se medicoEncontrado = falso entao
-                                       escreval("ERRO: ID de médico não encontrado.")
+                                    se (totalPlantoesResumo < 300) e (totalAlocacoesResumo + totalEspec <= 6000) entao
+                                       totalPlantoesResumo <- totalPlantoesResumo + 1
+                                       turnoPlantaoResumo[totalPlantoesResumo] <- opcaoTurno
+                                       para i de 1 ate totalEspec faca
+                                          totalAlocacoesResumo <- totalAlocacoesResumo + 1
+                                          medicoAlocadoResumo[totalAlocacoesResumo] <- escalaPos[i]
+                                          turnoAlocadoResumo[totalAlocacoesResumo] <- opcaoTurno
+                                       fimpara
                                     senao
-                                       se medicoEspec[posMedico] <> especialidadeNecessaria entao
-                                          escreval("ERRO: A especialidade do médico não corresponde ao plantão.")
-                                       senao
-                                          se medicoDisp[posMedico] <> opcaoTurno entao
-                                             escreval("ERRO: A disponibilidade do médico não corresponde ao turno selecionado.")
-                                          senao
-
-                                             duplicadoEscala <- falso
-
-                                             se i > 1 entao
-                                                para k de 1 ate i - 1 faca
-                                                   se escalaPos[k] = posMedico entao
-                                                      duplicadoEscala <- verdadeiro
-                                                   fimse
-                                                fimpara
-                                             fimse
-
-                                             se duplicadoEscala = verdadeiro entao
-                                                escreval("ERRO: Este médico já foi selecionado para este plantão.")
-                                             senao
-                                                escalaPos[i] <- posMedico
-                                                medicoValido <- verdadeiro
-                                             fimse
-
-                                          fimse
-                                       fimse
+                                       escreval("AVISO: Limite do historico do resumo atingido.")
                                     fimse
 
-                                 fimenquanto
+                                    escreval("Pressione Enter para voltar ao menu.")
+                                    leia(teclaEnter)
+                                    continuarPlan <- verdadeiro
+                                 fimse
 
-                              fimpara
+                              fimse
 
-                              escreval("")
-                              escreval("SUCESSO: Plantão pronto para ser publicado!")
-                              escreval("")
-                              escreval("=== MÉDICOS SELECIONADOS ===")
-
-                              para i de 1 ate totalEspec faca
-                                 escreval("ID: ", medicoID[escalaPos[i]])
-                                 escreval("Nome: ", medicoNome[escalaPos[i]])
-                                 escreval("Especialidade: ", medicoEspec[escalaPos[i]])
-                                 escreval("Disponibilidade: ", medicoDisp[escalaPos[i]])
-                                 escreval("")
-                              fimpara
-
-                               // NOVO: registrar somente um plantao validado e concluido
-                               se (totalPlantoesResumo < 300) e (totalAlocacoesResumo + totalEspec <= 6000) entao
-                                  totalPlantoesResumo <- totalPlantoesResumo + 1
-                                  turnoPlantaoResumo[totalPlantoesResumo] <- opcaoTurno
-                                  para i de 1 ate totalEspec faca
-                                     totalAlocacoesResumo <- totalAlocacoesResumo + 1
-                                     medicoAlocadoResumo[totalAlocacoesResumo] <- escalaPos[i]
-                                     turnoAlocadoResumo[totalAlocacoesResumo] <- opcaoTurno
-                                  fimpara
-                               senao
-                                  escreval("AVISO: Limite do historico do resumo atingido.")
-                               fimse
-                               // FIM NOVO: registro do plantao
-
-                              escreval("Pressione Enter para voltar ao menu.")
-                              leia(teclaEnter)
-                              continuarPlan <- verdadeiro
-
+                           senao
+                              limpatela
+                              escreval("ERRO: O plantão excede o limite máximo de 20 médicos.")
                            fimse
 
                         senao
                            limpatela
-                           escreval("ERRO: O plantão excede o limite máximo de 20 médicos.")
+                           escreval("ERRO: O plantão exige no mínimo 3 cirurgiões.")
                         fimse
 
                      senao
                         limpatela
-                        escreval("ERRO: O plantão exige no mínimo 3 cirurgiões.")
+                        escreval("ERRO: O plantão exige no mínimo 2 pediatras.")
                      fimse
 
                   senao
                      limpatela
-                     escreval("ERRO: O plantão exige no mínimo 2 pediatras.")
+                     escreval("ERRO: O plantão exige no mínimo 4 clínicos.")
                   fimse
 
-               senao
-                  limpatela
-                  escreval("ERRO: O plantão exige no mínimo 4 clínicos.")
-               fimse
+                  se continuarPlan = falso entao
+                     escreval("Pressione Enter para tentar novamente.")
+                     leia(teclaEnter)
+                  fimse
 
-               se continuarPlan = falso entao
-                  escreval("Pressione Enter para tentar novamente.")
-                  leia(teclaEnter)
-               fimse
+               fimenquanto
 
-            fimenquanto
+            fimse
 
             cadPlantao <- falso
 
@@ -595,7 +816,7 @@ inicio
       fimse
 
       // ------------------------------------------------------------
-      // opção 3: consultar médicos cadastrados
+      // OPÇÃO 3: CONSULTAR MÉDICOS CADASTRADOS
       // ------------------------------------------------------------
       se opcaoMenu = 3 entao
 
@@ -622,7 +843,7 @@ inicio
       fimse
 
       // ------------------------------------------------------------
-      // opção 4: verificar cobertura mínima
+      // OPÇÃO 4: VERIFICAR COBERTURA MÍNIMA
       // ------------------------------------------------------------
       se opcaoMenu = 4 entao
 
@@ -685,8 +906,11 @@ inicio
 
       fimse
 
-      //opcao 5 - resumo diario dos plantoes concluidos
+      // ------------------------------------------------------------
+      // OPÇÃO 5: RESUMO DIÁRIO DOS PLANTÕES
+      // ------------------------------------------------------------
       se opcaoMenu = 5 entao
+
          limpatela
          escreval("=== RESUMO DIARIO DOS PLANTOES ===")
 
@@ -699,14 +923,12 @@ inicio
                escreval("")
                escreval("=== TURNO: ", nomeTurno[resumoTurno], " ===")
 
-               //contar os plantoes deste turno
                para j de 1 ate totalPlantoesResumo faca
                   se turnoPlantaoResumo[j] = nomeTurno[resumoTurno] entao
                      resumoPlantoesTurno <- resumoPlantoesTurno + 1
                   fimse
                fimpara
 
-               //mostrar os medicos escalados neste turno
                para j de 1 ate totalAlocacoesResumo faca
                   se turnoAlocadoResumo[j] = nomeTurno[resumoTurno] entao
                      resumoMedicosTurno <- resumoMedicosTurno + 1
@@ -730,8 +952,8 @@ inicio
          escreval("Pressione Enter para voltar ao menu.")
          leia(teclaEnter)
          limpatela
+
       fimse
-      // FIM NOVO: resumo diario
 
       // ------------------------------------------------------------
       // opção 6: escala semanal (tarefas 17 e 18)
@@ -943,6 +1165,413 @@ inicio
       fimse
 
       // opção inválida do menu
+      se opcaoMenu < 1 entao
+         limpatela
+         semanaAtiva <- verdadeiro
+
+         enquanto semanaAtiva = verdadeiro faca
+
+            escreval("=== ESCALA SEMANAL ===")
+            escreval("1 - Visualizar escala semanal")
+            escreval("2 - Alocar médico em um turno")
+            escreval("3 - Voltar ao menu")
+            escreval("4 - Visualizar cobertura semanal")
+            escreval("5 - Diagnóstico de falhas na cobertura")
+            escreva("Escolha uma opção: ")
+            leia(opcaoSemana)
+            limpatela
+
+            // TAREFA 17: VISUALIZAR A SEMANA COMPLETA
+            se opcaoSemana = 1 entao
+
+               escreval("=== ESCALA DA SEMANA (SEG A SEX) ===")
+
+               para diaEscolhido de 1 ate 5 faca
+                  escreval("")
+                  escreval("##### ", nomeDia[diaEscolhido], " #####")
+
+                  para turnoEscolhido de 1 ate 3 faca
+                     idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+                     escreval("--- Turno: ", nomeTurno[turnoEscolhido], " ---")
+
+                     para p de 1 ate postosPorTurno faca
+                        s <- (idxSemana - 1) * postosPorTurno + p
+                        se escalaSemana[s] = 0 entao
+                           escreval("   Posto ", p, ": VAGO")
+                        senao
+                           escreval("   Posto ", p, ": ID ", medicoID[escalaSemana[s]], " - ", medicoNome[escalaSemana[s]], " (", medicoEspec[escalaSemana[s]], ")")
+                        fimse
+                     fimpara
+                  fimpara
+               fimpara
+
+               escreval("")
+               escreval("Pressione Enter para voltar.")
+               leia(teclaEnter)
+               limpatela
+
+            fimse
+
+            // TAREFA 18: ALOCAR MÉDICO
+            se opcaoSemana = 2 entao
+
+               escreval("=== ALOCAR MÉDICO NA ESCALA ===")
+
+               diaEscolhido <- 0
+               enquanto (diaEscolhido < 1) ou (diaEscolhido > 5) faca
+                  escreval("Dia: 1-Segunda | 2-Terça | 3-Quarta | 4-Quinta | 5-Sexta")
+                  escreva("Escolha o dia: ")
+                  leia(diaEscolhido)
+                  se (diaEscolhido < 1) ou (diaEscolhido > 5) entao
+                     escreval("ERRO: Opção inválida.")
+                  fimse
+               fimenquanto
+
+               turnoEscolhido <- 0
+               enquanto (turnoEscolhido < 1) ou (turnoEscolhido > 3) faca
+                  escreval("Turno: 1-Manhã | 2-Tarde | 3-Noite")
+                  escreva("Escolha o turno: ")
+                  leia(turnoEscolhido)
+                  se (turnoEscolhido < 1) ou (turnoEscolhido > 3) entao
+                     escreval("ERRO: Opção inválida.")
+                  fimse
+               fimenquanto
+
+               idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+
+               postoLivre <- 0
+               para p de 1 ate postosPorTurno faca
+                  se postoLivre = 0 entao
+                     se escalaSemana[(idxSemana - 1) * postosPorTurno + p] = 0 entao
+                        postoLivre <- p
+                     fimse
+                  fimse
+               fimpara
+
+               se postoLivre = 0 entao
+                  escreval("")
+                  escreval("ERRO: Todos os postos de ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido], " já estão ocupados.")
+               senao
+
+                  escreval("")
+                  escreval("Alocando em: ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido])
+                  escreva("Informe o ID do médico: ")
+                  leia(idEscolhido)
+
+                  regraOk <- verdadeiro
+
+                  posMedico <- identificarMedico(idEscolhido, nomeTurno[turnoEscolhido])
+                  medicoEncontrado <- posMedico <> 0
+
+                  se medicoEncontrado = falso entao
+                     escreval("ERRO: ID de médico não encontrado.")
+                     regraOk <- falso
+                  fimse
+
+                  se regraOk = verdadeiro entao
+                     se medicoDisp[posMedico] <> nomeTurno[turnoEscolhido] entao
+                        escreval("ERRO: A disponibilidade do médico não corresponde ao turno selecionado.")
+                        regraOk <- falso
+                     fimse
+                  fimse
+
+                  // Mesmo médico não pode repetir no mesmo turno
+                  se regraOk = verdadeiro entao
+                     para p de 1 ate postosPorTurno faca
+                        s <- (idxSemana - 1) * postosPorTurno + p
+                        se escalaSemana[s] > 0 entao
+                           se medicoID[escalaSemana[s]] = idEscolhido entao
+                              regraOk <- falso
+                           fimse
+                        fimse
+                     fimpara
+                     se regraOk = falso entao
+                        escreval("ERRO: Este médico já foi alocado neste turno.")
+                     fimse
+                  fimse
+
+                  // R8: limite semanal de plantões por médico
+                  se regraOk = verdadeiro entao
+                     qtdPlantoesMedico <- 0
+                     para s de 1 ate 15 * postosPorTurno faca
+                        se escalaSemana[s] > 0 entao
+                           se medicoID[escalaSemana[s]] = idEscolhido entao
+                              qtdPlantoesMedico <- qtdPlantoesMedico + 1
+                           fimse
+                        fimse
+                     fimpara
+                     se qtdPlantoesMedico >= limiteSemanal entao
+                        escreval("ERRO: Este médico já atingiu o limite de ", limiteSemanal, " plantões na semana.")
+                        regraOk <- falso
+                     fimse
+                  fimse
+
+                  // R9: sem manhã logo após plantão noturno
+                  se regraOk = verdadeiro entao
+                     idxOutro <- 0
+                     se (turnoEscolhido = 1) e (diaEscolhido > 1) entao
+                        idxOutro <- (diaEscolhido - 2) * 3 + 3
+                     fimse
+                     se (turnoEscolhido = 3) e (diaEscolhido < 5) entao
+                        idxOutro <- diaEscolhido * 3 + 1
+                     fimse
+
+                     se idxOutro > 0 entao
+                        para p de 1 ate postosPorTurno faca
+                           s <- (idxOutro - 1) * postosPorTurno + p
+                           se escalaSemana[s] > 0 entao
+                              se medicoID[escalaSemana[s]] = idEscolhido entao
+                                 regraOk <- falso
+                              fimse
+                           fimse
+                        fimpara
+                        se regraOk = falso entao
+                           escreval("ERRO: Não é permitido escalar o médico na manhã seguinte a um plantão noturno.")
+                        fimse
+                     fimse
+                  fimse
+
+                  // Grava a alocação após validar
+                  se regraOk = verdadeiro entao
+                     escalaSemana[(idxSemana - 1) * postosPorTurno + postoLivre] <- posMedico
+                     escreval("")
+                     escreval("SUCESSO: ", medicoNome[posMedico], " alocado(a) em ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido], ", posto ", postoLivre, ".")
+                  fimse
+
+               fimse
+
+               escreval("")
+               escreval("Pressione Enter para voltar.")
+               leia(teclaEnter)
+               limpatela
+
+            fimse
+
+            // ------------------------------------------------------------
+            // TAREFA 19: VISUALIZAR COBERTURA SEMANAL
+            // ------------------------------------------------------------
+            se opcaoSemana = 4 entao
+
+               limpatela
+               escreval("=== COBERTURA SEMANAL ===")
+               escreval("Mínimos: Clínicos: ", minClinicos, " | Pediatras: ", minPediatras, " | Cirurgiões: ", minCirurgioes)
+               escreval("")
+
+               para diaEscolhido de 1 ate 5 faca
+
+                  escreval("##### ", nomeDia[diaEscolhido], " #####")
+
+                  para turnoEscolhido de 1 ate 3 faca
+
+                     idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+
+                     para iEsp de 1 ate 3 faca
+                        qtdEscalaEsp[iEsp] <- 0
+                     fimpara
+
+                     escreval("")
+                     escreval("--- ", nomeTurno[turnoEscolhido], " ---")
+
+                     // Exibe médicos e conta cada especialidade
+                     para p de 1 ate postosPorTurno faca
+
+                        s <- (idxSemana - 1) * postosPorTurno + p
+
+                        se escalaSemana[s] = 0 entao
+                           escreval("Posto ", p, ": VAGO")
+                        senao
+
+                           escreval("Posto ", p, ": ", medicoNome[escalaSemana[s]], " - ", medicoEspec[escalaSemana[s]])
+
+                           para iEsp de 1 ate 3 faca
+                              se medicoEspec[escalaSemana[s]] = nomeEsp[iEsp] entao
+                                 qtdEscalaEsp[iEsp] <- qtdEscalaEsp[iEsp] + 1
+                              fimse
+                           fimpara
+
+                        fimse
+
+                     fimpara
+
+                     escreval("")
+                     escreval("Cobertura por especialidade:")
+
+                     para iEsp de 1 ate 3 faca
+
+                        se qtdEscalaEsp[iEsp] >= minEsp[iEsp] entao
+
+                           escreval(nomeEsp[iEsp], ": ", qtdEscalaEsp[iEsp], "/", minEsp[iEsp], " - OK")
+
+                        senao
+
+                           faltam <- minEsp[iEsp] - qtdEscalaEsp[iEsp]
+
+                           escreval(nomeEsp[iEsp], ": ", qtdEscalaEsp[iEsp], "/", minEsp[iEsp], " - INSUFICIENTE (faltam ", faltam, ")")
+
+                        fimse
+
+                     fimpara
+
+                     falhaTurno <- falso
+
+                     para iEsp de 1 ate 3 faca
+                        se qtdEscalaEsp[iEsp] < minEsp[iEsp] entao
+                           falhaTurno <- verdadeiro
+                        fimse
+                     fimpara
+
+                     se falhaTurno = verdadeiro entao
+                        escreval("RESULTADO DO TURNO: COBERTURA INSUFICIENTE")
+                     senao
+                        escreval("RESULTADO DO TURNO: COBERTURA COMPLETA")
+                     fimse
+
+                  fimpara
+
+               fimpara
+
+               escreval("")
+               escreval("Fim da análise da cobertura semanal.")
+               escreval("Pressione Enter para voltar.")
+               leia(teclaEnter)
+               limpatela
+
+            fimse
+
+            // ------------------------------------------------------------
+            // TAREFA 20: DIAGNÓSTICO DE FALHAS NA COBERTURA
+            // ------------------------------------------------------------
+            se opcaoSemana = 5 entao
+
+               limpatela
+
+               totalFalhas <- 0
+
+               para iEsp de 1 ate 3 faca
+                  falhasEsp[iEsp] <- 0
+               fimpara
+
+               escreval("=== DIAGNÓSTICO DE FALHAS SEMANAIS ===")
+               escreval("Verificando os 15 turnos da semana...")
+               escreval("")
+
+               para diaEscolhido de 1 ate 5 faca
+
+                  para turnoEscolhido de 1 ate 3 faca
+
+                     idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+
+                     para iEsp de 1 ate 3 faca
+                        qtdEscalaEsp[iEsp] <- 0
+                     fimpara
+
+                     // Conta médicos escalados por especialidade
+                     para p de 1 ate postosPorTurno faca
+
+                        s <- (idxSemana - 1) * postosPorTurno + p
+
+                        se escalaSemana[s] > 0 entao
+
+                           para iEsp de 1 ate 3 faca
+
+                              se medicoEspec[escalaSemana[s]] = nomeEsp[iEsp] entao
+                                 qtdEscalaEsp[iEsp] <- qtdEscalaEsp[iEsp] + 1
+                              fimse
+
+                           fimpara
+
+                        fimse
+
+                     fimpara
+
+                     falhaTurno <- falso
+
+                     // Identifica especialidades abaixo do mínimo
+                     para iEsp de 1 ate 3 faca
+
+                        se qtdEscalaEsp[iEsp] < minEsp[iEsp] entao
+
+                           falhaTurno <- verdadeiro
+                           falhasEsp[iEsp] <- falhasEsp[iEsp] + 1
+                           totalFalhas <- totalFalhas + 1
+
+                        fimse
+
+                     fimpara
+
+                     // Registra dia, turno e especialidade da falha
+                     se falhaTurno = verdadeiro entao
+
+                        escreval("FALHA: ", nomeDia[diaEscolhido], " - ", nomeTurno[turnoEscolhido])
+
+                        para iEsp de 1 ate 3 faca
+
+                           se qtdEscalaEsp[iEsp] < minEsp[iEsp] entao
+
+                              faltam <- minEsp[iEsp] - qtdEscalaEsp[iEsp]
+
+                              escreval("   ", nomeEsp[iEsp], ": ", qtdEscalaEsp[iEsp], "/", minEsp[iEsp], " - Faltam ", faltam, " médico(s).")
+
+                           fimse
+
+                        fimpara
+
+                        escreval("")
+
+                     fimse
+
+                  fimpara
+
+               fimpara
+
+               escreval("=== RESUMO DAS FALHAS ===")
+
+               se totalFalhas = 0 entao
+
+                  escreval("SEM FALHAS: todos os turnos atendem aos mínimos.")
+
+               senao
+
+                  escreval("Total de falhas de cobertura: ", totalFalhas)
+                  escreval("")
+
+                  para iEsp de 1 ate 3 faca
+
+                     escreval(nomeEsp[iEsp], ": ", falhasEsp[iEsp], " turno(s) com falha.")
+
+                  fimpara
+
+                  escreval("")
+                  escreval("DIAGNÓSTICO: a escala semanal apresenta")
+                  escreval("insuficiência de médicos em um ou mais turnos.")
+
+               fimse
+
+               escreval("")
+               escreval("Verificação dos 15 turnos concluída.")
+               escreval("Pressione Enter para voltar.")
+               leia(teclaEnter)
+               limpatela
+
+            fimse
+
+            se opcaoSemana = 3 entao
+               semanaAtiva <- falso
+            fimse
+
+            // Validação atualizada para aceitar opções de 1 a 5
+            se (opcaoSemana < 1) ou (opcaoSemana > 5) entao
+               escreval("ERRO: Opção inválida.")
+               escreval("")
+            fimse
+
+         fimenquanto
+
+         limpatela
+
+      fimse
+
+      // Opção inválida do menu
       se opcaoMenu < 1 entao
          limpatela
          escreval("ERRO: Opção inválida.")
