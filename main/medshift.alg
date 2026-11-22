@@ -907,7 +907,7 @@ inicio
       fimse
 
       // ------------------------------------------------------------
-      // OPÇÃO 5: RESUMO DIÁRIO DOS PLANTÕES
+      // OPÇÃO 5: RESUMO DI�RIO DOS PLANTÕES
       // ------------------------------------------------------------
       se opcaoMenu = 5 entao
 
