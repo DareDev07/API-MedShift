@@ -116,6 +116,26 @@ var
    turnosCobertos : inteiro
    percentCobertura : real
 
+
+   // ADICAO: variaveis exclusivas do relatorio completo
+   relCarga : vetor[1..60] de inteiro
+   relPrimeiraPos : vetor[1..60] de inteiro
+   relQtdUnicos : inteiro
+   relIndice : inteiro
+   relIndiceMedico : inteiro
+   relContador : inteiro
+   relMaior : inteiro
+   relMenor : inteiro
+   relTotal : inteiro
+   relCobertos : inteiro
+   relFalhas : inteiro
+   relFaltam : inteiro
+   relMedia : real
+   relPercentual : real
+   relSobrecarga : inteiro
+   relCoberturaCompleta : logico
+   relEncontrado : logico
+
    // Largura (em caracteres) usada para centralizar títulos e menus
    larguraTela : inteiro
 
@@ -261,39 +281,52 @@ var
    espacos : inteiro
 inicio
    espacos <- (larguraTela - compr(texto)) \ 2
+   se espacos < 0 entao
+      espacos <- 0
+   fimse
    para n de 1 ate espacos faca
       escreva(" ")
    fimpara
    escreval(texto)
 fimprocedimento
 
-   // Título principal: caixa de "=" com o texto centralizado
+   // Título principal: moldura visual com o texto centralizado
 procedimento tituloPrincipal(texto: caractere)
 inicio
+   escreval("")
    desenharLinha("=")
+   escreval("")
    centralizar(texto)
+   escreval("")
    desenharLinha("=")
    escreval("")
 fimprocedimento
 
-   // Título de seção: texto centralizado entre símbolos
+   // Título de seção: separadores simétricos e centralização
 procedimento tituloSecao(simbolo: caractere; texto: caractere)
 var
    n : inteiro
    lado : inteiro
+   restante : inteiro
 inicio
+   escreval("")
    lado <- (larguraTela - compr(texto) - 2) \ 2
+   se lado < 0 entao
+      lado <- 0
+   fimse
+   restante <- larguraTela - (lado * 2) - compr(texto) - 2
    para n de 1 ate lado faca
       escreva(simbolo)
    fimpara
    escreva(" ", texto, " ")
-   para n de 1 ate lado faca
+   para n de 1 ate lado + restante faca
       escreva(simbolo)
    fimpara
    escreval("")
+   escreval("")
 fimprocedimento
 
-   // Item de menu com margem à esquerda (alinha o bloco do menu ao centro)
+   // Item de menu com margem à esquerda e espaçamento consistente
 procedimento itemMenu(margem: inteiro; texto: caractere)
 var
    n : inteiro
@@ -302,13 +335,15 @@ inicio
       escreva(" ")
    fimpara
    escreval(texto)
+   escreval("")
 fimprocedimento
 
-   // Pergunta do menu com a mesma margem dos itens (o cursor fica na linha)
+   // Pergunta do menu com a mesma margem dos itens
 procedimento perguntaMenu(margem: inteiro; texto: caractere)
 var
    n : inteiro
 inicio
+   escreval("")
    para n de 1 ate margem faca
       escreva(" ")
    fimpara
@@ -386,6 +421,7 @@ inicio
             se posicao < 60 entao
 
                tituloPrincipal("CADASTRAR MÉDICO")
+               escreval("0 - para voltar ao menu principal")
 
                // O nome não pode ficar vazio
                nomeInserido <- ""
@@ -396,6 +432,10 @@ inicio
                      escreval("ERRO: O nome não pode ficar vazio.")
                   fimse
                fimenquanto
+
+               se nomeInserido = "0" entao
+                  cadMedicos <- falso
+               senao
 
                escreval("")
                tituloSecao("-", "DISPONIBILIDADE")
@@ -534,6 +574,8 @@ inicio
                   fimse
                fimse
 
+               fimse
+
             senao
                escreval("Limite de 60 cadastros atingido.")
                escreval("")
@@ -624,10 +666,15 @@ inicio
                itemMenu(29, "1 - Manhã")
                itemMenu(29, "2 - Tarde")
                itemMenu(29, "3 - Noite")
+               escreval("0 - para voltar ao menu principal")
                escreval("")
                perguntaMenu(29, "Escolha uma opção: ")
                leia(escolhaTurno)
 
+               se escolhaTurno = "0" entao
+                  abortarPlantao <- verdadeiro
+                  continuarPlan <- verdadeiro
+               senao
                se escolhaTurno = "1" entao
                   opcaoTurno <- "Manhã"
                   continuarPlan <- verdadeiro
@@ -646,9 +693,11 @@ inicio
                      fimse
                   fimse
                fimse
+               fimse
 
             fimenquanto
 
+            se abortarPlantao = falso entao
             para iTurno de 1 ate 3 faca
                se nomeTurno[iTurno] = opcaoTurno entao
                   idxTurno <- iTurno
@@ -731,6 +780,7 @@ inicio
             fimenquanto
 
             inicioSelecao <- 1
+            fimse
 
          fimse
 
@@ -1038,7 +1088,8 @@ inicio
             itemMenu(19, "2 - Alocar médico em um turno")
             itemMenu(19, "3 - Diagnóstico de falhas na cobertura")
             itemMenu(19, "4 - Visualizar cobertura semanal")
-            itemMenu(19, "5 - Voltar ao menu")
+            itemMenu(19, "5 - Relatorio completo da semana")
+             itemMenu(19, "6 - Voltar ao menu")
             escreval("")
             desenharLinha("-")
             perguntaMenu(19, "Escolha uma opção: ")
@@ -1081,25 +1132,35 @@ inicio
 
                tituloPrincipal("ALOCAR MÉDICO NA ESCALA")
 
-               diaEscolhido <- 0
-               enquanto (diaEscolhido < 1) ou (diaEscolhido > 5) faca
+               diaEscolhido <- -1
+               enquanto ((diaEscolhido < 1) ou (diaEscolhido > 5)) e (diaEscolhido <> 0) faca
                   escreval("Dia: 1-Segunda | 2-Terça | 3-Quarta | 4-Quinta | 5-Sexta")
+                  escreval("0 - para voltar ao menu principal")
                   escreva("Escolha o dia: ")
                   leia(diaEscolhido)
-                  se (diaEscolhido < 1) ou (diaEscolhido > 5) entao
+                  se ((diaEscolhido < 1) ou (diaEscolhido > 5)) e (diaEscolhido <> 0) entao
                      escreval("ERRO: Opção inválida.")
                   fimse
                fimenquanto
 
-               turnoEscolhido <- 0
-               enquanto (turnoEscolhido < 1) ou (turnoEscolhido > 3) faca
+               se diaEscolhido = 0 entao
+                  semanaAtiva <- falso
+               senao
+
+               turnoEscolhido <- -1
+               enquanto ((turnoEscolhido < 1) ou (turnoEscolhido > 3)) e (turnoEscolhido <> 0) faca
                   escreval("Turno: 1-Manhã | 2-Tarde | 3-Noite")
+                  escreval("0 - para voltar ao menu principal")
                   escreva("Escolha o turno: ")
                   leia(turnoEscolhido)
-                  se (turnoEscolhido < 1) ou (turnoEscolhido > 3) entao
+                  se ((turnoEscolhido < 1) ou (turnoEscolhido > 3)) e (turnoEscolhido <> 0) entao
                      escreval("ERRO: Opção inválida.")
                   fimse
                fimenquanto
+
+               se turnoEscolhido = 0 entao
+                  semanaAtiva <- falso
+               senao
 
                idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
 
@@ -1151,9 +1212,14 @@ inicio
 
                fimse
 
+               fimse
+               fimse
+
+               se semanaAtiva = verdadeiro entao
                escreval("")
                escreval("Pressione Enter para voltar.")
                leia(teclaEnter)
+               fimse
                limpatela
 
             fimse
@@ -1370,12 +1436,155 @@ inicio
 
             fimse
 
-            se opcaoSemana = 5 entao
+             // ------------------------------------------------------------
+             // ADICAO: RELATORIO COMPLETO DA ESCALA SEMANAL
+             // Usa apenas a escala semanal existente, sem alterar alocacoes.
+             // ------------------------------------------------------------
+             se opcaoSemana = 5 entao
+                limpatela
+                tituloPrincipal("RELATORIO COMPLETO DA ESCALA SEMANAL")
+
+                se qtdMedicos = 0 entao
+                   escreval("Nenhum medico cadastrado.")
+                   escreval("Nao ha profissionais para calcular cargas e media.")
+                   escreval("Turnos plenamente cobertos: 0 de 15 (0.0%).")
+                senao
+                   // Identifica cada profissional pelo ID, sem contar
+                   // duas vezes quem possui cadastro em dois turnos.
+                   relQtdUnicos <- 0
+                   para relIndice de 1 ate posicao faca
+                      relEncontrado <- falso
+                      para relContador de 1 ate relQtdUnicos faca
+                         se medicoID[relPrimeiraPos[relContador]] = medicoID[relIndice] entao
+                            relEncontrado <- verdadeiro
+                         fimse
+                      fimpara
+                      se relEncontrado = falso entao
+                         relQtdUnicos <- relQtdUnicos + 1
+                         relPrimeiraPos[relQtdUnicos] <- relIndice
+                         relCarga[relQtdUnicos] <- 0
+                      fimse
+                   fimpara
+
+                   relCobertos <- 0
+                   relFalhas <- 0
+                   relTotal <- 0
+                   tituloSecao("=", "COBERTURA POR DIA E TURNO")
+                   para diaEscolhido de 1 ate 5 faca
+                      tituloSecao("=", nomeDia[diaEscolhido])
+                      para turnoEscolhido de 1 ate 3 faca
+                         idxSemana <- (diaEscolhido - 1) * 3 + turnoEscolhido
+                         para iEsp de 1 ate 3 faca
+                            qtdEscalaEsp[iEsp] <- 0
+                         fimpara
+
+                         // Conta alocacoes e carga por profissional.
+                         para p de 1 ate postosPorTurno faca
+                            s <- (idxSemana - 1) * postosPorTurno + p
+                            se escalaSemana[s] > 0 entao
+                               relTotal <- relTotal + 1
+                               para iEsp de 1 ate 3 faca
+                                  se medicoEspec[escalaSemana[s]] = nomeEsp[iEsp] entao
+                                     qtdEscalaEsp[iEsp] <- qtdEscalaEsp[iEsp] + 1
+                                  fimse
+                               fimpara
+                               para relContador de 1 ate relQtdUnicos faca
+                                  se medicoID[relPrimeiraPos[relContador]] = medicoID[escalaSemana[s]] entao
+                                     relCarga[relContador] <- relCarga[relContador] + 1
+                                  fimse
+                               fimpara
+                            fimse
+                         fimpara
+
+                         relCoberturaCompleta <- verdadeiro
+                         escreval("Turno: ", nomeTurno[turnoEscolhido])
+                         para iEsp de 1 ate 3 faca
+                            se qtdEscalaEsp[iEsp] < minEsp[iEsp] entao
+                               relFaltam <- minEsp[iEsp] - qtdEscalaEsp[iEsp]
+                               relFalhas <- relFalhas + 1
+                               relCoberturaCompleta <- falso
+                               escreval("  ", nomeEsp[iEsp], ": ", qtdEscalaEsp[iEsp], "/", minEsp[iEsp], " - FALHA (faltam ", relFaltam, ")")
+                            senao
+                               escreval("  ", nomeEsp[iEsp], ": ", qtdEscalaEsp[iEsp], "/", minEsp[iEsp], " - OK")
+                            fimse
+                         fimpara
+                         se relCoberturaCompleta = verdadeiro entao
+                            relCobertos <- relCobertos + 1
+                            escreval("  RESULTADO: COBERTURA COMPLETA")
+                         senao
+                            escreval("  RESULTADO: COBERTURA INSUFICIENTE")
+                         fimse
+                         desenharLinha("-")
+                      fimpara
+                   fimpara
+
+                   tituloSecao("=", "CARGA POR PROFISSIONAL")
+                   relMaior <- relCarga[1]
+                   relMenor <- relCarga[1]
+                   para relContador de 1 ate relQtdUnicos faca
+                      relIndiceMedico <- relPrimeiraPos[relContador]
+                      escreval("ID ", medicoID[relIndiceMedico], " - ", medicoNome[relIndiceMedico], ": ", relCarga[relContador], " plantao(oes)")
+                      se relCarga[relContador] > relMaior entao
+                         relMaior <- relCarga[relContador]
+                      fimse
+                      se relCarga[relContador] < relMenor entao
+                         relMenor <- relCarga[relContador]
+                      fimse
+                   fimpara
+
+                   tituloSecao("=", "MAIOR E MENOR CARGA")
+                   escreval("Maior carga: ", relMaior, " plantao(oes)")
+                   para relContador de 1 ate relQtdUnicos faca
+                      se relCarga[relContador] = relMaior entao
+                         relIndiceMedico <- relPrimeiraPos[relContador]
+                         escreval("  ID ", medicoID[relIndiceMedico], " - ", medicoNome[relIndiceMedico])
+                      fimse
+                   fimpara
+                   escreval("Menor carga: ", relMenor, " plantao(oes)")
+                   para relContador de 1 ate relQtdUnicos faca
+                      se relCarga[relContador] = relMenor entao
+                         relIndiceMedico <- relPrimeiraPos[relContador]
+                         escreval("  ID ", medicoID[relIndiceMedico], " - ", medicoNome[relIndiceMedico])
+                      fimse
+                   fimpara
+
+                   relMedia <- relTotal / relQtdUnicos
+                   relSobrecarga <- 0
+                   tituloSecao("=", "MEDIA E SOBRECARGA")
+                   escreval("Total de alocacoes: ", relTotal)
+                   escreval("Profissionais unicos: ", relQtdUnicos)
+                   escreval("Media de plantoes por profissional: ", relMedia:6:1)
+                   escreval("Acima da media (indicador estatistico):")
+                   para relContador de 1 ate relQtdUnicos faca
+                      se relCarga[relContador] > relMedia entao
+                         relIndiceMedico <- relPrimeiraPos[relContador]
+                         escreval("  ID ", medicoID[relIndiceMedico], " - ", medicoNome[relIndiceMedico], ": ", relCarga[relContador], " plantoes")
+                         relSobrecarga <- relSobrecarga + 1
+                      fimse
+                   fimpara
+                   se relSobrecarga = 0 entao
+                      escreval("  Nenhum profissional acima da media.")
+                   fimse
+
+                   relPercentual <- (relCobertos * 100.0) / 15
+                   tituloSecao("=", "RESUMO GERAL")
+                   escreval("Falhas por especialidade/turno: ", relFalhas)
+                   escreval("Turnos plenamente cobertos: ", relCobertos, " de 15")
+                   escreval("Percentual de cobertura: ", relPercentual:6:1, "%")
+                fimse
+
+                escreval("")
+                escreval("Pressione Enter para voltar.")
+                leia(teclaEnter)
+                limpatela
+             fimse
+
+            se opcaoSemana = 6 entao
                semanaAtiva <- falso
             fimse
 
-            // Validação atualizada para aceitar opções de 1 a 5
-            se (opcaoSemana < 1) ou (opcaoSemana > 5) entao
+            // ADICAO: validacao aceita a nova opcao 6
+            se (opcaoSemana < 1) ou (opcaoSemana > 6) entao
                escreval("ERRO: Opção inválida.")
                escreval("")
             fimse
